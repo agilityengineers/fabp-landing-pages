@@ -1,7 +1,8 @@
 import { query } from "@/lib/db";
 import { retryFailedSubmission, sendFailureAlert } from "@/lib/forms";
 
-export { MAX_AUTO_RETRIES } from "@/lib/retry-config";
+import { MAX_AUTO_RETRIES } from "@/lib/retry-config";
+export { MAX_AUTO_RETRIES };
 const RATE_LIMIT_DELAY_MS = 2_000;
 
 function sleep(ms: number): Promise<void> {
