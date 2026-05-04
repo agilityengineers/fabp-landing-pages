@@ -34,3 +34,10 @@ waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[userenv]
+
+[userenv.shared]
+ADMIN_PASSWORD = "Success2026"
+BD_API_KEY = "60c8c4b3dc7c06efac6c65a8b305f42e"
+BD_API_URL = "https://www.findabusinesspro.com/"
