@@ -1,4 +1,6 @@
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
 import { Resend } from "resend";
 import { query, withClient } from "@/lib/db";
 
@@ -21,6 +23,51 @@ export type ApplicationData = {
 
 const BD_API_ENDPOINT = "https://www.findabusinesspro.com/api/v2/user/create";
 const BD_SUBSCRIPTION_ID = "21";
+
+/**
+ * Maps each landing-page industry slug to the numeric profession_id for the
+ * corresponding top-level category in the Brilliant Directories dashboard at
+ * findabusinesspro.com.
+ *
+ * These IDs were verified by querying the BD API (GET /api/v2/user/get/{id})
+ * for existing members in each category and reading their profession_id field.
+ *
+ * To update or verify: BD admin → Members → Categories, or query any member
+ * in that category via the BD API and read the returned profession_id.
+ * Add a new entry here whenever a new industry page is launched.
+ */
+const PROFESSION_ID_BY_SLUG: Record<string, number> = {
+  "cpas":                              4,  // Accountants
+  "attorneys":                         3,  // Attorneys
+  "business-coaches":                  13, // Business Coaches
+  "fractional-cfos":                   6,  // Financial Advisors
+  "marketing-agencies":                5,  // Marketing Agency
+  "ma-advisors":                       2,  // Consultants
+  "exit-planning":                     23, // Business Exit Planning
+  "agile-consulting":                  25, // Agile Consulting
+  "business-services-professionals":   28, // Business management consultant
+};
+
+(function assertAllSlugsAreMapped() {
+  try {
+    const industriesDir = path.join(process.cwd(), "config", "industries");
+    if (!fs.existsSync(industriesDir)) return;
+    const slugs = fs
+      .readdirSync(industriesDir)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => f.replace(".json", ""));
+    const unmapped = slugs.filter((s) => !(s in PROFESSION_ID_BY_SLUG));
+    if (unmapped.length > 0) {
+      console.error(
+        `[BD] WARNING: The following industry slugs have no profession_id mapping ` +
+        `and submissions from those pages will be rejected. ` +
+        `Add them to PROFESSION_ID_BY_SLUG in lib/forms.ts: ${unmapped.join(", ")}`
+      );
+    }
+  } catch {
+    // Non-fatal — don't break the import if the check itself fails
+  }
+})();
 
 function generateTempPassword(): string {
   return crypto.randomBytes(16).toString("base64url");
@@ -216,7 +263,24 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
 
   if (data.phone) fields.phone = data.phone;
   if (data.website) fields.website = data.website;
-  if (data.profession) fields.industry = data.profession;
+
+  const professionId = PROFESSION_ID_BY_SLUG[data.industrySlug];
+
+  if (typeof professionId === "number") {
+    fields.profession_id = String(professionId);
+  } else {
+    const detail =
+      `No profession_id mapped for industrySlug "${data.industrySlug}". ` +
+      `Add an entry to PROFESSION_ID_BY_SLUG in lib/forms.ts before this industry page goes live.`;
+    console.error(`[BD] ${detail}`);
+    await sendFailureAlert(
+      { name: data.name, lastName: data.lastName, email: data.email },
+      detail
+    );
+    return;
+  }
+
+  if (data.profession) fields.position = data.profession;
 
   const body = new URLSearchParams(fields).toString();
 
