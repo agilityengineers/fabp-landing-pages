@@ -1,0 +1,53 @@
+## Error Type
+Console Error
+
+## Error Message
+A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <HotReload assetPrefix="" globalError={[...]}>
+      <AppDevOverlayErrorBoundary globalError={[...]}>
+        <ReplaySsrOnlyErrors>
+        <DevRootHTTPAccessFallbackBoundary>
+          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
+            <HTTPAccessFallbackErrorBoundary pathname="/business-..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
+              <RedirectBoundary>
+                <RedirectErrorBoundary router={{...}}>
+                  <Head>
+                  <__next_root_layout_boundary__>
+                    <SegmentViewNode type="layout" pagePath="layout.tsx">
+                      <SegmentTrieNode>
+                      <link>
+                      <RootLayout>
+                        <html
+                          lang="en"
+                          className="__variable_fb7d4f __variable_5ca87d __variable_6d24ac"
+-                         style={{--ro-scrollbar-height:"0px"}}
+                        >
+                  ...
+
+
+
+    at html (<anonymous>:null:null)
+    at RootLayout (app/layout.tsx:42:5)
+
+## Code Frame
+  40 | export default function RootLayout({ children }: { children: React.ReactNode }) {
+  41 |   return (
+> 42 |     <html
+     |     ^
+  43 |       lang="en"
+  44 |       className={`${newsreader.variable} ${interTight.variable} ${jetbrainsMono.variable}`}
+  45 |     >
+
+Next.js version: 15.5.15 (Webpack)

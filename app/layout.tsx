@@ -42,6 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       className={`${newsreader.variable} ${interTight.variable} ${jetbrainsMono.variable}`}
+      suppressHydrationWarning
     >
       <body suppressHydrationWarning>{children}</body>
     </html>
