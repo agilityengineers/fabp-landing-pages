@@ -31,6 +31,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://invitation.findabusinesspro.com"
   ),
+  icons: {
+    icon: "/New-Favicon-2026_1777917096270.png",
+    apple: "/New-Favicon-2026_1777917096270.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
