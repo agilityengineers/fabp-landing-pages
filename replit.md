@@ -18,11 +18,20 @@ A Next.js application that collects professional membership applications and cre
 |---|---|
 | `BD_API_KEY` | Brilliant Directories API key |
 | `BD_API_URL` | Brilliant Directories base API URL |
-| `ALERT_WEBHOOK_URL` | (Optional) Webhook URL for admin failure alerts (Slack, Discord, Make, Zapier, etc.) |
 | `SESSION_SECRET` | Session signing secret |
+| `ALERT_WEBHOOK_URL` | (Optional) Webhook URL for failure alerts (Slack, Discord, Make, Zapier, etc.) |
+| `ALERT_EMAIL` | (Optional) Recipient email address for failure alert emails |
+| `RESEND_API_KEY` | Required when `ALERT_EMAIL` is set — Resend API key for sending alert emails |
+| `ALERT_EMAIL_FROM` | (Optional) Sender address for alert emails; must be a Resend-verified domain. Defaults to `alerts@findabusinesspro.com` |
 
 ## Failure Alerting
-When a Brilliant Directories member creation fails (bad HTTP response, network error, or missing config), the app sends an alert to `ALERT_WEBHOOK_URL` if that secret is set. The payload is Slack-compatible (with fallback `text` field) and works with any generic webhook. The applicant sees the thank-you screen regardless.
+When a Brilliant Directories member creation fails (bad HTTP response, network error, or missing config), the app fires alerts via any configured channels and then returns normally (the applicant always sees the thank-you screen).
+
+**Webhook channel** (`ALERT_WEBHOOK_URL`): Posts a Slack-compatible JSON payload. Works with Slack, Discord, Make, Zapier, or any generic webhook receiver.
+
+**Email channel** (`ALERT_EMAIL` + `RESEND_API_KEY`): Sends an HTML email via [Resend](https://resend.com) to the configured recipient. `ALERT_EMAIL_FROM` should be set to a sender address whose domain is verified in your Resend account — if omitted, the app falls back to `alerts@findabusinesspro.com` and logs a warning at alert-send time that the domain must be Resend-verified or emails will fail to deliver. For new deployments, explicitly setting `ALERT_EMAIL_FROM` is strongly recommended.
+
+Both channels can be configured simultaneously — they fire concurrently.
 
 ## Running
 - Start: `npm run dev`
