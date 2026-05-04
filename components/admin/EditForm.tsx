@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Industry } from "@/config/schema";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -12,6 +12,8 @@ interface EditFormProps {
 
 type Sections = Industry["sections"];
 
+const PREVIEW_PREF_KEY = "fabp:preview-open";
+
 export function EditForm({ industry: initial, isGenerated = false }: EditFormProps) {
   const router = useRouter();
   const [draft, setDraft] = useState<Industry>(initial);
@@ -21,14 +23,65 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
   const [regenLoading, setRegenLoading] = useState<string | null>(null);
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
 
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewStale, setPreviewStale] = useState(false);
+  const previewIframeRef = useRef<HTMLIFrameElement | null>(null);
+  const previewReadyRef = useRef(false);
+  const previewTimer = useRef<NodeJS.Timeout | null>(null);
+  const draftRef = useRef<Industry>(initial);
+  draftRef.current = draft;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.localStorage.getItem(PREVIEW_PREF_KEY) === "1") {
+      setPreviewOpen(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(PREVIEW_PREF_KEY, previewOpen ? "1" : "0");
+  }, [previewOpen]);
+
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (!e.data || e.data.type !== "fabp:preview-ready") return;
+      if (e.source !== previewIframeRef.current?.contentWindow) return;
+      previewReadyRef.current = true;
+      postDraftToPreview(draftRef.current);
+      setPreviewStale(false);
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
+
+  function postDraftToPreview(data: Industry) {
+    const win = previewIframeRef.current?.contentWindow;
+    if (!win || !previewReadyRef.current) return;
+    win.postMessage({ type: "fabp:preview", cfg: data }, "*");
+  }
+
+  function schedulePreview(data: Industry) {
+    setPreviewStale(true);
+    if (previewTimer.current) clearTimeout(previewTimer.current);
+    previewTimer.current = setTimeout(() => {
+      postDraftToPreview(data);
+      setPreviewStale(false);
+    }, 250);
+  }
+
   function update<K extends keyof Industry>(k: K, v: Industry[K]) {
-    setDraft((d) => ({ ...d, [k]: v }));
-    scheduleSave({ ...draft, [k]: v });
+    const next = { ...draft, [k]: v };
+    setDraft(next);
+    scheduleSave(next);
+    schedulePreview(next);
   }
 
   function updateNested<K extends keyof Industry>(k: K, subk: string, v: unknown) {
-    setDraft((d) => ({ ...d, [k]: { ...(d[k] as object), [subk]: v } }));
-    scheduleSave({ ...draft, [k]: { ...(draft[k] as object), [subk]: v } });
+    const next = { ...draft, [k]: { ...(draft[k] as object), [subk]: v } } as Industry;
+    setDraft(next);
+    scheduleSave(next);
+    schedulePreview(next);
   }
 
   function updateVillain(i: number, field: "t" | "b", v: string) {
@@ -109,8 +162,10 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
       });
       if (!res.ok) throw new Error("Regeneration failed");
       const updated = await res.json();
-      setDraft((d) => ({ ...d, [section]: updated[section] }));
+      const next = { ...draftRef.current, [section]: updated[section] } as Industry;
+      setDraft(next);
       setSavedAt(new Date());
+      schedulePreview(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Regen failed");
     } finally {
@@ -125,7 +180,7 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
     : "Unsaved changes";
 
   return (
-    <div className="admin-main">
+    <div className={previewOpen ? "admin-main edit-with-preview" : "admin-main"}>
       <div className="admin-bar">
         <div>
           <a href="/admin" className="ind-action" style={{ marginBottom: 10, display: "inline-flex" }}>
@@ -167,6 +222,8 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
         </div>
       )}
 
+      <div className="edit-split">
+      <div className="edit-form-pane">
       <div className="admin-card">
         {/* Identifiers */}
         <div className="form-section">
@@ -387,8 +444,16 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
             {saveStatus}
           </div>
           <div className="save-bar-right">
+            <button
+              type="button"
+              className={previewOpen ? "ind-action primary-soft" : "ind-action"}
+              onClick={() => setPreviewOpen((v) => !v)}
+              aria-pressed={previewOpen}
+            >
+              {previewOpen ? "Hide preview" : "Show preview"}
+            </button>
             <a href={`/${draft.slug}`} className="ind-action" target="_blank" rel="noopener">
-              Preview
+              Open in tab ↗
             </a>
             <button
               type="button"
@@ -408,6 +473,40 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
             </button>
           </div>
         </div>
+      </div>
+      </div>
+      {previewOpen && (
+        <div className="edit-preview-pane">
+          <div className="preview-toolbar">
+            <div className="preview-toolbar-left">
+              <span className={`preview-dot ${previewStale ? "stale" : "live"}`} aria-hidden />
+              <span>{previewStale ? "Updating…" : "Live preview"}</span>
+            </div>
+            <div className="preview-toolbar-right">
+              <a href={`/${draft.slug}`} target="_blank" rel="noopener" className="preview-toolbar-link">
+                Open ↗
+              </a>
+              <button
+                type="button"
+                className="preview-toolbar-close"
+                onClick={() => setPreviewOpen(false)}
+                aria-label="Close preview"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+          <iframe
+            ref={previewIframeRef}
+            src={`/preview/${draft.slug}`}
+            className="preview-iframe"
+            title="Live preview"
+            onLoad={() => {
+              previewReadyRef.current = false;
+            }}
+          />
+        </div>
+      )}
       </div>
     </div>
   );
