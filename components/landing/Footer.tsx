@@ -9,9 +9,6 @@ export function Footer({ base }: { base: Base }) {
           findabusinesspro.com →
         </a>
         <span>invitation.findabusinesspro.com</span>
-        <a className="foot-admin" href="/admin">
-          Admin →
-        </a>
       </div>
     </footer>
   );
