@@ -49,6 +49,25 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
     update("faq", faq);
   }
 
+  function moveFaq(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= draft.faq.length) return;
+    const faq = [...draft.faq];
+    [faq[i], faq[j]] = [faq[j], faq[i]];
+    update("faq", faq);
+  }
+
+  function addFaq() {
+    if (draft.faq.length >= 6) return;
+    update("faq", [...draft.faq, { q: "", a: "" }]);
+  }
+
+  function removeFaq(i: number) {
+    if (draft.faq.length <= 4) return;
+    const faq = draft.faq.filter((_, idx) => idx !== i);
+    update("faq", faq);
+  }
+
   function updateSection(k: keyof Sections, v: boolean) {
     update("sections", { ...draft.sections, [k]: v });
   }
@@ -324,7 +343,7 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
             <RegenButton section="faq" loading={regenLoading === "faq"} onRegen={regenerateSection} />
           </div>
           {draft.faq.map((f, i) => (
-            <div key={i} className="villain-edit">
+            <div key={i} className="villain-edit" style={{ alignItems: "start" }}>
               <div className="villain-edit-num">{String(i + 1).padStart(2, "0")}</div>
               <div>
                 <div className="field" style={{ marginBottom: 8 }}>
@@ -343,8 +362,52 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
                   />
                 </div>
               </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, marginLeft: 8 }}>
+                <button
+                  type="button"
+                  className="ind-action"
+                  onClick={() => moveFaq(i, -1)}
+                  disabled={i === 0}
+                  aria-label="Move up"
+                  title="Move up"
+                  style={{ padding: "4px 8px" }}
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  className="ind-action"
+                  onClick={() => moveFaq(i, 1)}
+                  disabled={i === draft.faq.length - 1}
+                  aria-label="Move down"
+                  title="Move down"
+                  style={{ padding: "4px 8px" }}
+                >
+                  ↓
+                </button>
+                <button
+                  type="button"
+                  className="ind-action"
+                  onClick={() => removeFaq(i)}
+                  disabled={draft.faq.length <= 4}
+                  aria-label="Remove"
+                  title={draft.faq.length <= 4 ? "Minimum 4 FAQ items" : "Remove"}
+                  style={{ padding: "4px 8px" }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           ))}
+          <button
+            type="button"
+            className="ind-action"
+            onClick={addFaq}
+            disabled={draft.faq.length >= 6}
+            style={{ marginTop: 8 }}
+          >
+            {draft.faq.length >= 6 ? "Maximum 6 FAQ items" : "+ Add question"}
+          </button>
         </div>
 
         {/* Section toggles */}
