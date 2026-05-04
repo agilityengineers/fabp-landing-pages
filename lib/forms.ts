@@ -221,6 +221,110 @@ async function sendFailureAlert(
   await Promise.all(alerts);
 }
 
+const BD_LOGIN_URL = "https://www.findabusinesspro.com/members/login/";
+const BD_FORGOT_PASSWORD_URL =
+  "https://www.findabusinesspro.com/members/login/?forgot_password=1";
+
+async function sendMemberWelcomeEmail(
+  member: { name: string; lastName: string; email: string },
+  tempPassword: string
+): Promise<void> {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    console.warn(
+      "[BD] RESEND_API_KEY is not set — skipping member welcome email"
+    );
+    return;
+  }
+
+  const fromAddress =
+    process.env.WELCOME_EMAIL_FROM ??
+    process.env.ALERT_EMAIL_FROM ??
+    "welcome@findabusinesspro.com";
+
+  if (!process.env.WELCOME_EMAIL_FROM && !process.env.ALERT_EMAIL_FROM) {
+    console.warn(
+      "[BD] Neither WELCOME_EMAIL_FROM nor ALERT_EMAIL_FROM is set — using default " +
+        "sender welcome@findabusinesspro.com. This domain must be verified in Resend."
+    );
+  }
+
+  const resend = new Resend(resendApiKey);
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const htmlBody = `
+    <p>Hi ${esc(member.name)},</p>
+    <p>Welcome to <strong>Find a Business Pro</strong>! Your member account has been created and is ready to use.</p>
+    <p>Here are your login credentials:</p>
+    <table cellpadding="8" style="border-collapse:collapse;">
+      <tr>
+        <td><strong>Email</strong></td>
+        <td>${esc(member.email)}</td>
+      </tr>
+      <tr>
+        <td><strong>Temporary Password</strong></td>
+        <td><code style="background:#f4f4f4;padding:2px 6px;border-radius:3px;">${esc(tempPassword)}</code></td>
+      </tr>
+    </table>
+    <p>
+      <a href="${BD_LOGIN_URL}" style="display:inline-block;padding:10px 20px;background:#1a73e8;color:#fff;text-decoration:none;border-radius:4px;">
+        Log In to Your Account
+      </a>
+    </p>
+    <p>Once you're logged in, we strongly recommend setting a permanent password of your choice:</p>
+    <ol>
+      <li>Log in using the credentials above.</li>
+      <li>Go to your <strong>Account Settings</strong> and update your password.</li>
+    </ol>
+    <p>
+      Alternatively, you can
+      <a href="${BD_FORGOT_PASSWORD_URL}">reset your password directly</a>
+      without logging in first — just enter your email address and follow the link we send you.
+    </p>
+    <p>If you have any questions, reply to this email and we'll be happy to help.</p>
+    <p>Welcome aboard,<br/>The Find a Business Pro Team</p>
+  `;
+
+  const textBody = [
+    `Hi ${member.name},`,
+    "",
+    "Welcome to Find a Business Pro! Your member account has been created and is ready to use.",
+    "",
+    "Your login credentials:",
+    `  Email:              ${member.email}`,
+    `  Temporary Password: ${tempPassword}`,
+    "",
+    `Log in here: ${BD_LOGIN_URL}`,
+    "",
+    "Once logged in, please update your password in Account Settings.",
+    `You can also reset your password directly: ${BD_FORGOT_PASSWORD_URL}`,
+    "",
+    "Welcome aboard,",
+    "The Find a Business Pro Team",
+  ].join("\n");
+
+  try {
+    const result = await resend.emails.send({
+      from: fromAddress,
+      to: member.email,
+      subject: "Welcome to Find a Business Pro — your login details",
+      html: htmlBody,
+      text: textBody,
+    });
+
+    if (result.error) {
+      console.error("[BD] Failed to send member welcome email:", result.error);
+    } else {
+      console.log(
+        `[BD] Member welcome email sent to ${member.email} (id: ${result.data?.id})`
+      );
+    }
+  } catch (err) {
+    console.error("[BD] Exception sending member welcome email:", err);
+  }
+}
+
 export async function submitApplication(data: ApplicationData): Promise<void> {
   console.log("[FABP Application] received submission", {
     profession: data.profession,
@@ -309,6 +413,10 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
       ]);
     } else {
       console.log("[BD] Member created successfully", text);
+      await sendMemberWelcomeEmail(
+        { name: data.name, lastName: data.lastName, email: data.email },
+        tempPassword
+      );
     }
   } catch (err) {
     const errorDetail = err instanceof Error ? err.message : String(err);
@@ -420,6 +528,10 @@ export async function retryFailedSubmission(id: number): Promise<void> {
       [id]
     );
     console.log(`[BD] Retry for submission ${id} succeeded`, responseText);
+    await sendMemberWelcomeEmail(
+      { name: data.name, lastName: data.lastName, email: data.email },
+      tempPassword
+    );
   } else {
     // Roll the row back to pending so it can be retried again later.
     await query(
