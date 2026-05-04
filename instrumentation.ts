@@ -14,6 +14,35 @@ export async function register() {
       console.error("[DB] Schema initialisation failed:", err);
     }
 
+    // Validate that every industry config has a valid professionId so
+    // missing mappings are surfaced at boot, not only on the first submission.
+    try {
+      const { listSlugs, loadIndustry } = await import("@/lib/config");
+      const slugs = listSlugs();
+      const invalid: string[] = [];
+      for (const slug of slugs) {
+        try {
+          const cfg = loadIndustry(slug);
+          if (typeof cfg.professionId !== "number" || cfg.professionId <= 0) {
+            invalid.push(slug);
+          }
+        } catch {
+          invalid.push(slug);
+        }
+      }
+      if (invalid.length > 0) {
+        console.error(
+          `[BD] WARNING: The following industry config files are missing a valid ` +
+          `"professionId" field. Submissions from those pages will be rejected. ` +
+          `Set "professionId" to the correct BD category ID in each file: ${invalid.join(", ")}`
+        );
+      } else {
+        console.log(`[BD] All ${slugs.length} industry config(s) have a valid professionId`);
+      }
+    } catch (err) {
+      console.error("[BD] Industry config validation failed:", err);
+    }
+
     // Start the in-process background retry loop only when explicitly opted
     // in via the ENABLE_BACKGROUND_RETRY=true env var.  In production (or
     // when an external HTTP cron hits /api/cron/retry-submissions) leave this
