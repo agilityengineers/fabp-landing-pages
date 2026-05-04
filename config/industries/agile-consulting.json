@@ -1,0 +1,77 @@
+{
+  "slug": "agile-consulting",
+  "industry": "Agile Consultants",
+  "industryShort": "Agile Consultant",
+  "industryPlural": "Agile Consultants",
+  "published": false,
+  "lastEdited": "2025-05-04T00:00:00.000Z",
+  "seo": {
+    "title": "An Invitation for Agile Consultants — Find a Business Pro",
+    "description": "A category-exclusive listing in the directory leaders search when transformation has stopped meaning ceremony and started meaning outcomes."
+  },
+  "hero": {
+    "eyebrow": "An Invitation — for Agile Consultants",
+    "headline": "Be matched to teams ready to <em>actually change</em>.",
+    "subhead": "A category-exclusive listing in the directory leaders search when transformation has stopped meaning ceremony and started meaning outcomes.",
+    "primaryCta": "Book a 15-min intro call",
+    "secondaryCta": "Provider Playbook",
+    "heroImage": "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80&auto=format&fit=crop",
+    "heroPhotoLabel": "AGILE CONSULTANT · SEATTLE, WA"
+  },
+  "problem": {
+    "headline": "You didn't earn the credentials to become a marketer.",
+    "villains": [
+      { "t": "Frameworks are commodities", "b": "Generic 'transformation' searches surface the loudest." },
+      { "t": "Invisible in a crowded market", "b": "Generalist sites flatten a senior coach into a Scrum Master listing." },
+      { "t": "Day-rate auctions", "b": "Bidding on outcome work as if it were inputs." },
+      { "t": "POCs that never close", "b": "Pilots that demo well and never become contracts." }
+    ]
+  },
+  "promise": {
+    "headline": "Where leaders look when ceremony has run its course — and outcomes are the only metric.",
+    "stats": [
+      { "v": "$36k", "l": "Avg. monthly engagement" },
+      { "v": "1", "l": "Per niche, per metro" },
+      { "v": "90 days", "l": "To first inbound" }
+    ]
+  },
+  "plan": [
+    { "time": "Step 01", "title": "Apply", "body": "A 5-minute application. We screen for credentials, niche, and market availability." },
+    { "time": "Step 02", "title": "Brand voice interview", "body": "A 45-minute founder-led conversation that shapes how your listing sounds." },
+    { "time": "Step 03", "title": "Get listed & matched", "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue." }
+  ],
+  "profile": {
+    "name": "S. Iyer",
+    "role": "Agile + Operating Model Consultant",
+    "city": "Seattle, WA",
+    "stats": [
+      { "v": "14yr", "l": "Practice" },
+      { "v": "30+", "l": "Engagements" },
+      { "v": "F500", "l": "Roster" }
+    ]
+  },
+  "statsBand": [
+    { "v": "$36k/mo", "l": "Avg. monthly engagement" },
+    { "v": "4.1x", "l": "More qualified inbound vs. RFPs" },
+    { "v": "1 / niche", "l": "Per niche, per metro" }
+  ],
+  "faq": [
+    { "q": "What does it cost to be listed?", "a": "Listing is free. Brand Voice Interview determines fit." },
+    { "q": "What does category exclusivity mean?", "a": "One listed consultant per niche, per metro." },
+    { "q": "How is this different from Toptal Enterprise?", "a": "We curate, position, and amplify — not auction." },
+    { "q": "What happens after I apply?", "a": "A 15-minute intro call, then a Brand Voice Interview." }
+  ],
+  "testimonials": [],
+  "sections": {
+    "hero": true,
+    "problemPromise": true,
+    "plan": true,
+    "sampleProfile": false,
+    "statsBand": false,
+    "testimonials": false,
+    "founder": false,
+    "apply": true
+  },
+  "showFounder": false,
+  "accent": "navy"
+}
