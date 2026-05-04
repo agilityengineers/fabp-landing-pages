@@ -2,14 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   function isActive(href: string) {
     if (href === "/admin") return pathname === "/admin";
     return pathname.startsWith(href);
+  }
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/admin/login");
   }
 
   return (
@@ -36,7 +42,39 @@ export function Sidebar() {
         </Link>
       </nav>
       <div style={{ flex: 1 }} />
-      <div className="admin-side-foot">v1.0 · Find a Business Pro</div>
+      <div className="admin-side-foot">
+        <span>v1.0 · Find a Business Pro</span>
+        <button
+          onClick={handleLogout}
+          style={{
+            display: "block",
+            marginTop: 10,
+            width: "100%",
+            padding: "7px 10px",
+            background: "rgba(255,255,255,0.06)",
+            border: "0.5px solid rgba(255,255,255,0.12)",
+            borderRadius: 6,
+            color: "rgba(255,255,255,0.55)",
+            fontFamily: "var(--mono)",
+            fontSize: 9.5,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            cursor: "pointer",
+            textAlign: "left",
+            transition: "background .15s, color .15s",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)";
+            (e.currentTarget as HTMLButtonElement).style.color = "#fff";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
+            (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.55)";
+          }}
+        >
+          Sign out →
+        </button>
+      </div>
     </aside>
   );
 }
