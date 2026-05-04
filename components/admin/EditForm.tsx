@@ -184,6 +184,63 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
               <input value={draft.slug} disabled style={{ opacity: 0.6 }} />
             </div>
           </div>
+          <div className="field-row">
+            <div className="field">
+              <label>Short name (e.g. &ldquo;Attorney&rdquo;)</label>
+              <input
+                value={draft.industryShort}
+                onChange={(e) => update("industryShort", e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Plural name (optional)</label>
+              <input
+                value={draft.industryPlural ?? ""}
+                onChange={(e) => update("industryPlural", e.target.value || undefined)}
+                placeholder="e.g. Business Attorneys"
+              />
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field">
+              <label>BD Profession ID</label>
+              <input
+                type="number"
+                min={1}
+                value={draft.professionId}
+                onChange={(e) => update("professionId", parseInt(e.target.value, 10) || 0)}
+              />
+              <div className="field-hint">Maps to profession_id in the BD system</div>
+            </div>
+          </div>
+        </div>
+
+        {/* SEO */}
+        <div className="form-section">
+          <div className="form-section-h">SEO</div>
+          <div className="field">
+            <label>Page title</label>
+            <input
+              value={draft.seo.title}
+              onChange={(e) => updateNested("seo", "title", e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label>Meta description (optional)</label>
+            <textarea
+              value={draft.seo.description ?? ""}
+              onChange={(e) => updateNested("seo", "description", e.target.value || undefined)}
+              style={{ minHeight: 60 }}
+            />
+          </div>
+          <div className="field">
+            <label>OG image URL (optional)</label>
+            <input
+              value={draft.seo.ogImage ?? ""}
+              onChange={(e) => updateNested("seo", "ogImage", e.target.value || undefined)}
+              placeholder="https://..."
+            />
+          </div>
         </div>
 
         {/* Hero */}
@@ -191,6 +248,14 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
           <div className="form-section-h">
             Hero
             <RegenButton section="hero" loading={regenLoading === "hero"} onRegen={regenerateSection} />
+          </div>
+          <div className="field">
+            <label>Eyebrow text</label>
+            <input
+              value={draft.hero.eyebrow}
+              onChange={(e) => updateNested("hero", "eyebrow", e.target.value)}
+              placeholder="An Invitation — for Business Attorneys"
+            />
           </div>
           <div className="field">
             <label>Headline (use &lt;em&gt; for italic phrase)</label>
@@ -222,34 +287,52 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
               />
             </div>
           </div>
-          <div className="field">
-            <label>Hero image URL (Unsplash or other)</label>
-            <input
-              value={draft.hero.heroImage ?? ""}
-              onChange={(e) => updateNested("hero", "heroImage", e.target.value)}
-              placeholder="https://images.unsplash.com/..."
-            />
+          <div className="field-row">
+            <div className="field">
+              <label>Hero photo label</label>
+              <input
+                value={draft.hero.heroPhotoLabel}
+                onChange={(e) => updateNested("hero", "heroPhotoLabel", e.target.value)}
+                placeholder="ATTORNEY · ATLANTA, GA"
+              />
+            </div>
+            <div className="field">
+              <label>Hero image URL (Unsplash or other)</label>
+              <input
+                value={draft.hero.heroImage ?? ""}
+                onChange={(e) => updateNested("hero", "heroImage", e.target.value)}
+                placeholder="https://images.unsplash.com/..."
+              />
+            </div>
           </div>
         </div>
 
         {/* Problem / Villains */}
         <div className="form-section">
           <div className="form-section-h">
-            Villains (4)
+            Problem &amp; Villains
             <RegenButton section="problem" loading={regenLoading === "problem"} onRegen={regenerateSection} />
+          </div>
+          <div className="field">
+            <label>Problem headline</label>
+            <input
+              value={draft.problem.headline}
+              onChange={(e) => updateNested("problem", "headline", e.target.value)}
+            />
           </div>
           {draft.problem.villains.map((v, i) => (
             <div key={i} className="villain-edit">
               <div className="villain-edit-num">{String(i + 1).padStart(2, "0")}</div>
               <div>
                 <div className="field" style={{ marginBottom: 8 }}>
-                  <input value={v.t} onChange={(e) => updateVillain(i, "t", e.target.value)} />
+                  <input value={v.t} onChange={(e) => updateVillain(i, "t", e.target.value)} placeholder="Title" />
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <textarea
                     value={v.b}
                     onChange={(e) => updateVillain(i, "b", e.target.value)}
                     style={{ minHeight: 50 }}
+                    placeholder="Body"
                   />
                 </div>
               </div>
@@ -286,6 +369,56 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
           </div>
         </div>
 
+        {/* Plan */}
+        <div className="form-section">
+          <div className="form-section-h">
+            Plan (3 steps)
+            <RegenButton section="plan" loading={regenLoading === "plan"} onRegen={regenerateSection} />
+          </div>
+          {draft.plan.map((step, i) => (
+            <div key={i} className="villain-edit">
+              <div className="villain-edit-num">{step.time || `Step 0${i + 1}`}</div>
+              <div style={{ flex: 1 }}>
+                <div className="field" style={{ marginBottom: 8 }}>
+                  <label>Step label</label>
+                  <input
+                    value={step.time}
+                    onChange={(e) => {
+                      const plan = [...draft.plan];
+                      plan[i] = { ...plan[i], time: e.target.value };
+                      update("plan", plan);
+                    }}
+                    placeholder="Step 01"
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 8 }}>
+                  <label>Title</label>
+                  <input
+                    value={step.title}
+                    onChange={(e) => {
+                      const plan = [...draft.plan];
+                      plan[i] = { ...plan[i], title: e.target.value };
+                      update("plan", plan);
+                    }}
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label>Body</label>
+                  <textarea
+                    value={step.body}
+                    onChange={(e) => {
+                      const plan = [...draft.plan];
+                      plan[i] = { ...plan[i], body: e.target.value };
+                      update("plan", plan);
+                    }}
+                    style={{ minHeight: 60 }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Sample profile */}
         <div className="form-section">
           <div className="form-section-h">
@@ -315,6 +448,147 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
               onChange={(e) => updateNested("profile", "city", e.target.value)}
             />
           </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 12 }}>
+            {draft.profile.stats.map((s, i) => (
+              <div key={i}>
+                <div className="field" style={{ marginBottom: 6 }}>
+                  <label>Profile stat {i + 1} value</label>
+                  <input
+                    value={s.v}
+                    onChange={(e) => {
+                      const stats = [...draft.profile.stats];
+                      stats[i] = { ...stats[i], v: e.target.value };
+                      update("profile", { ...draft.profile, stats });
+                    }}
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label>Profile stat {i + 1} label</label>
+                  <input
+                    value={s.l}
+                    onChange={(e) => {
+                      const stats = [...draft.profile.stats];
+                      stats[i] = { ...stats[i], l: e.target.value };
+                      update("profile", { ...draft.profile, stats });
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats band */}
+        <div className="form-section">
+          <div className="form-section-h">Stats band (optional)</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            {(draft.statsBand ?? [{v:"",l:""},{v:"",l:""},{v:"",l:""}]).map((s, i) => (
+              <div key={i}>
+                <div className="field" style={{ marginBottom: 6 }}>
+                  <label>Band stat {i + 1} value</label>
+                  <input
+                    value={s.v}
+                    onChange={(e) => {
+                      const band = [...(draft.statsBand ?? [{v:"",l:""},{v:"",l:""},{v:"",l:""}])];
+                      band[i] = { ...band[i], v: e.target.value };
+                      update("statsBand", band);
+                    }}
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label>Band stat {i + 1} label</label>
+                  <input
+                    value={s.l}
+                    onChange={(e) => {
+                      const band = [...(draft.statsBand ?? [{v:"",l:""},{v:"",l:""},{v:"",l:""}])];
+                      band[i] = { ...band[i], l: e.target.value };
+                      update("statsBand", band);
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Testimonials */}
+        <div className="form-section">
+          <div className="form-section-h">Testimonials ({draft.testimonials.length})</div>
+          {draft.testimonials.map((t, i) => (
+            <div key={i} className="villain-edit" style={{ alignItems: "flex-start" }}>
+              <div className="villain-edit-num">{String(i + 1).padStart(2, "0")}</div>
+              <div style={{ flex: 1 }}>
+                <div className="field" style={{ marginBottom: 8 }}>
+                  <label>Quote</label>
+                  <textarea
+                    value={t.quote}
+                    onChange={(e) => {
+                      const arr = [...draft.testimonials];
+                      arr[i] = { ...arr[i], quote: e.target.value };
+                      update("testimonials", arr);
+                    }}
+                    style={{ minHeight: 60 }}
+                  />
+                </div>
+                <div className="field-row">
+                  <div className="field" style={{ marginBottom: 0 }}>
+                    <label>Name</label>
+                    <input
+                      value={t.name}
+                      onChange={(e) => {
+                        const arr = [...draft.testimonials];
+                        arr[i] = { ...arr[i], name: e.target.value };
+                        update("testimonials", arr);
+                      }}
+                    />
+                  </div>
+                  <div className="field" style={{ marginBottom: 0 }}>
+                    <label>Role</label>
+                    <input
+                      value={t.role}
+                      onChange={(e) => {
+                        const arr = [...draft.testimonials];
+                        arr[i] = { ...arr[i], role: e.target.value };
+                        update("testimonials", arr);
+                      }}
+                    />
+                  </div>
+                  <div className="field" style={{ marginBottom: 0 }}>
+                    <label>Company (optional)</label>
+                    <input
+                      value={t.company ?? ""}
+                      onChange={(e) => {
+                        const arr = [...draft.testimonials];
+                        arr[i] = { ...arr[i], company: e.target.value || undefined };
+                        update("testimonials", arr);
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const arr = draft.testimonials.filter((_, j) => j !== i);
+                  update("testimonials", arr);
+                }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", fontSize: 18, padding: "0 4px", marginLeft: 8 }}
+                title="Remove"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="ind-action"
+            style={{ marginTop: 8 }}
+            onClick={() => {
+              update("testimonials", [...draft.testimonials, { quote: "", name: "", role: "", company: undefined }]);
+            }}
+          >
+            + Add testimonial
+          </button>
         </div>
 
         {/* FAQ */}
@@ -326,7 +600,7 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
           {draft.faq.map((f, i) => (
             <div key={i} className="villain-edit">
               <div className="villain-edit-num">{String(i + 1).padStart(2, "0")}</div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div className="field" style={{ marginBottom: 8 }}>
                   <input
                     value={f.q}
@@ -343,8 +617,31 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
                   />
                 </div>
               </div>
+              {draft.faq.length > 4 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const arr = draft.faq.filter((_, j) => j !== i);
+                    update("faq", arr);
+                  }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", fontSize: 18, padding: "0 4px", marginLeft: 8 }}
+                  title="Remove"
+                >
+                  ×
+                </button>
+              )}
             </div>
           ))}
+          {draft.faq.length < 6 && (
+            <button
+              type="button"
+              className="ind-action"
+              style={{ marginTop: 8 }}
+              onClick={() => update("faq", [...draft.faq, { q: "", a: "" }])}
+            >
+              + Add FAQ item
+            </button>
+          )}
         </div>
 
         {/* Section toggles */}
@@ -369,6 +666,11 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
               onChange={(v) => updateSection(k, v)}
             />
           ))}
+          <ToggleSwitch
+            label="Show founder bio block"
+            checked={draft.showFounder}
+            onChange={(v) => update("showFounder", v)}
+          />
         </div>
 
         {/* Accent */}
