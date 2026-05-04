@@ -1,4 +1,4 @@
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "postgresql-16"]
 [agent]
 expertMode = true
 
@@ -23,6 +23,10 @@ author = "agent"
 task = "workflow.run"
 args = "Start application"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "validate-configs"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -34,3 +38,24 @@ waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow]]
+name = "validate-configs"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run validate:configs"
+
+[workflows.workflow.metadata]
+isValidation = true
+
+[userenv]
+
+[userenv.shared]
+ADMIN_PASSWORD = "Success2026"
+BD_API_KEY = "60c8c4b3dc7c06efac6c65a8b305f42e"
+BD_API_URL = "https://www.findabusinesspro.com/"
+
+[nix]
+channel = "stable-25_05"

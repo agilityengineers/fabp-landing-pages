@@ -1,5 +1,6 @@
 {
   "slug": "business-coaches",
+  "professionId": 13,
   "industry": "Business Coaches",
   "industryShort": "Business Coach",
   "industryPlural": "Business Coaches",
@@ -21,45 +22,108 @@
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
     "villains": [
-      { "t": "Saturated, noisy channels", "b": "LinkedIn-bro coaching has poisoned the well." },
-      { "t": "Invisible in a crowded market", "b": "Generalist sites flatten a coach into a freelancer." },
-      { "t": "Per-session bidding", "b": "Pricing for work measured in years." },
-      { "t": "Curiosity calls that never close", "b": "Intros that ask for time but not commitment." }
+      {
+        "t": "Saturated, noisy channels",
+        "b": "LinkedIn-bro coaching has poisoned the well."
+      },
+      {
+        "t": "Invisible in a crowded market",
+        "b": "Generalist sites flatten a coach into a freelancer."
+      },
+      {
+        "t": "Per-session bidding",
+        "b": "Pricing for work measured in years."
+      },
+      {
+        "t": "Curiosity calls that never close",
+        "b": "Intros that ask for time but not commitment."
+      }
     ]
   },
   "promise": {
     "headline": "Where serious founders look for serious coaches — without the noise.",
     "stats": [
-      { "v": "$28k", "l": "Avg. engagement value" },
-      { "v": "1", "l": "Per niche, per metro" },
-      { "v": "90 days", "l": "To first inbound" }
+      {
+        "v": "$28k",
+        "l": "Avg. engagement value"
+      },
+      {
+        "v": "1",
+        "l": "Per niche, per metro"
+      },
+      {
+        "v": "90 days",
+        "l": "To first inbound"
+      }
     ]
   },
   "plan": [
-    { "time": "Step 01", "title": "Apply", "body": "A 5-minute application. We screen for credentials, niche, and market availability." },
-    { "time": "Step 02", "title": "Brand voice interview", "body": "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes." },
-    { "time": "Step 03", "title": "Get listed & matched", "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue." }
+    {
+      "time": "Step 01",
+      "title": "Apply",
+      "body": "A 5-minute application. We screen for credentials, niche, and market availability."
+    },
+    {
+      "time": "Step 02",
+      "title": "Brand voice interview",
+      "body": "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes."
+    },
+    {
+      "time": "Step 03",
+      "title": "Get listed & matched",
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
+    }
   ],
   "profile": {
     "name": "L. Park, PCC",
     "role": "Executive + Founder Coach",
     "city": "Denver, CO",
     "stats": [
-      { "v": "11yr", "l": "Coaching" },
-      { "v": "ICF-PCC", "l": "Credential" },
-      { "v": "9", "l": "Active clients" }
+      {
+        "v": "11yr",
+        "l": "Coaching"
+      },
+      {
+        "v": "ICF-PCC",
+        "l": "Credential"
+      },
+      {
+        "v": "9",
+        "l": "Active clients"
+      }
     ]
   },
   "statsBand": [
-    { "v": "$28k", "l": "Avg. engagement value" },
-    { "v": "82%", "l": "Founders citing coaching as growth lever" },
-    { "v": "1 / niche", "l": "Per niche, per metro" }
+    {
+      "v": "$28k",
+      "l": "Avg. engagement value"
+    },
+    {
+      "v": "82%",
+      "l": "Founders citing coaching as growth lever"
+    },
+    {
+      "v": "1 / niche",
+      "l": "Per niche, per metro"
+    }
   ],
   "faq": [
-    { "q": "What does it cost to be listed?", "a": "Listing is free. Brand Voice Interview determines fit." },
-    { "q": "What does category exclusivity mean?", "a": "One listed coach per niche, per metro." },
-    { "q": "How is this different from coaching marketplaces?", "a": "Those auction time. We curate considered hires." },
-    { "q": "What happens after I apply?", "a": "A 15-minute intro call, then a Brand Voice Interview." }
+    {
+      "q": "What does it cost to be listed?",
+      "a": "Listing is free. Brand Voice Interview determines fit."
+    },
+    {
+      "q": "What does category exclusivity mean?",
+      "a": "One listed coach per niche, per metro."
+    },
+    {
+      "q": "How is this different from coaching marketplaces?",
+      "a": "Those auction time. We curate considered hires."
+    },
+    {
+      "q": "What happens after I apply?",
+      "a": "A 15-minute intro call, then a Brand Voice Interview."
+    }
   ],
   "testimonials": [],
   "sections": {

@@ -1,5 +1,6 @@
 {
   "slug": "attorneys",
+  "professionId": 3,
   "industry": "Business Attorneys",
   "industryShort": "Attorney",
   "industryPlural": "Business Attorneys",
@@ -21,45 +22,108 @@
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
     "villains": [
-      { "t": "Bar-compliant marketing is its own job", "b": "Every channel has rules. Most outsourced marketers don't speak the language." },
-      { "t": "Invisible in a crowded market", "b": "Avvo-style sites flatten you next to every J.D. with a profile." },
-      { "t": "Race-to-the-bottom marketplaces", "b": "Lead-gen platforms commodify a considered hire." },
-      { "t": "Referrals that ghost", "b": "Intros that book a consult, then disappear." }
+      {
+        "t": "Bar-compliant marketing is its own job",
+        "b": "Every channel has rules. Most outsourced marketers don't speak the language."
+      },
+      {
+        "t": "Invisible in a crowded market",
+        "b": "Avvo-style sites flatten you next to every J.D. with a profile."
+      },
+      {
+        "t": "Race-to-the-bottom marketplaces",
+        "b": "Lead-gen platforms commodify a considered hire."
+      },
+      {
+        "t": "Referrals that ghost",
+        "b": "Intros that book a consult, then disappear."
+      }
     ]
   },
   "promise": {
     "headline": "From reactive to chosen — by founders, COOs, and CFOs at the moments that matter.",
     "stats": [
-      { "v": "$22.5k", "l": "Avg. annual engagement" },
-      { "v": "1", "l": "Per practice area, per metro" },
-      { "v": "90 days", "l": "To first inbound" }
+      {
+        "v": "$22.5k",
+        "l": "Avg. annual engagement"
+      },
+      {
+        "v": "1",
+        "l": "Per practice area, per metro"
+      },
+      {
+        "v": "90 days",
+        "l": "To first inbound"
+      }
     ]
   },
   "plan": [
-    { "time": "Step 01", "title": "Apply", "body": "A 5-minute application. We screen for credentials, practice area, and market availability." },
-    { "time": "Step 02", "title": "Brand voice interview", "body": "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes." },
-    { "time": "Step 03", "title": "Get listed & matched", "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue." }
+    {
+      "time": "Step 01",
+      "title": "Apply",
+      "body": "A 5-minute application. We screen for credentials, practice area, and market availability."
+    },
+    {
+      "time": "Step 02",
+      "title": "Brand voice interview",
+      "body": "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes."
+    },
+    {
+      "time": "Step 03",
+      "title": "Get listed & matched",
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
+    }
   ],
   "profile": {
     "name": "J. Carrington, Esq.",
     "role": "Business + M&A Counsel",
     "city": "Atlanta, GA",
     "stats": [
-      { "v": "18yr", "l": "Practice" },
-      { "v": "120+", "l": "Closed deals" },
-      { "v": "$210M", "l": "YTD volume" }
+      {
+        "v": "18yr",
+        "l": "Practice"
+      },
+      {
+        "v": "120+",
+        "l": "Closed deals"
+      },
+      {
+        "v": "$210M",
+        "l": "YTD volume"
+      }
     ]
   },
   "statsBand": [
-    { "v": "$22.5k", "l": "Avg. annual engagement" },
-    { "v": "68%", "l": "Of business owners search online for counsel" },
-    { "v": "1 / metro", "l": "Per practice area, per metro" }
+    {
+      "v": "$22.5k",
+      "l": "Avg. annual engagement"
+    },
+    {
+      "v": "68%",
+      "l": "Of business owners search online for counsel"
+    },
+    {
+      "v": "1 / metro",
+      "l": "Per practice area, per metro"
+    }
   ],
   "faq": [
-    { "q": "What does it cost to be listed?", "a": "Listing is free. After applying, we run a Brand Voice Interview to determine fit." },
-    { "q": "What does category exclusivity mean?", "a": "One listed attorney per practice area, per metro." },
-    { "q": "How is this different from Avvo or Martindale?", "a": "Those flatten every J.D. into a directory entry. We curate, vet, and position." },
-    { "q": "What happens after I apply?", "a": "A 15-minute intro call, then a Brand Voice Interview. Listings typically go live within two weeks." }
+    {
+      "q": "What does it cost to be listed?",
+      "a": "Listing is free. After applying, we run a Brand Voice Interview to determine fit."
+    },
+    {
+      "q": "What does category exclusivity mean?",
+      "a": "One listed attorney per practice area, per metro."
+    },
+    {
+      "q": "How is this different from Avvo or Martindale?",
+      "a": "Those flatten every J.D. into a directory entry. We curate, vet, and position."
+    },
+    {
+      "q": "What happens after I apply?",
+      "a": "A 15-minute intro call, then a Brand Voice Interview. Listings typically go live within two weeks."
+    }
   ],
   "testimonials": [],
   "sections": {

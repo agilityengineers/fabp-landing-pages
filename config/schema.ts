@@ -4,6 +4,7 @@ export const statSchema = z.object({ v: z.string(), l: z.string() });
 
 export const industrySchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/),
+  professionId: z.number().int().positive(),
   industry: z.string(),
   industryShort: z.string(),
   industryPlural: z.string().optional(),

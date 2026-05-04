@@ -1,5 +1,6 @@
 {
   "slug": "exit-planning",
+  "professionId": 23,
   "industry": "Business Exit Planners",
   "industryShort": "Exit Planner",
   "industryPlural": "Business Exit Planners",
@@ -21,45 +22,108 @@
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
     "villains": [
-      { "t": "Ad spend that misses the moment", "b": "Channels can't target the founder whose CFO just floated the question." },
-      { "t": "Invisible in a crowded market", "b": "Generalist sites flatten exit planning into 'business consulting.'" },
-      { "t": "Per-engagement bidding", "b": "For multi-year work measured in valuation gain." },
-      { "t": "Referrals that arrive late", "b": "After the founder has already chosen poorly." }
+      {
+        "t": "Ad spend that misses the moment",
+        "b": "Channels can't target the founder whose CFO just floated the question."
+      },
+      {
+        "t": "Invisible in a crowded market",
+        "b": "Generalist sites flatten exit planning into 'business consulting.'"
+      },
+      {
+        "t": "Per-engagement bidding",
+        "b": "For multi-year work measured in valuation gain."
+      },
+      {
+        "t": "Referrals that arrive late",
+        "b": "After the founder has already chosen poorly."
+      }
     ]
   },
   "promise": {
     "headline": "Where founders look at the earliest exit signals — and find a planner before they need one.",
     "stats": [
-      { "v": "$90k+", "l": "Avg. annual engagement" },
-      { "v": "1", "l": "Per industry, per metro" },
-      { "v": "90 days", "l": "To first inbound" }
+      {
+        "v": "$90k+",
+        "l": "Avg. annual engagement"
+      },
+      {
+        "v": "1",
+        "l": "Per industry, per metro"
+      },
+      {
+        "v": "90 days",
+        "l": "To first inbound"
+      }
     ]
   },
   "plan": [
-    { "time": "Step 01", "title": "Apply", "body": "A 5-minute application. We screen for credentials, industry focus, and market availability." },
-    { "time": "Step 02", "title": "Brand voice interview", "body": "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes." },
-    { "time": "Step 03", "title": "Get listed & matched", "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue." }
+    {
+      "time": "Step 01",
+      "title": "Apply",
+      "body": "A 5-minute application. We screen for credentials, industry focus, and market availability."
+    },
+    {
+      "time": "Step 02",
+      "title": "Brand voice interview",
+      "body": "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes."
+    },
+    {
+      "time": "Step 03",
+      "title": "Get listed & matched",
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
+    }
   ],
   "profile": {
     "name": "T. Halberstam, CEPA",
     "role": "Exit + Succession Planner",
     "city": "Phoenix, AZ",
     "stats": [
-      { "v": "16yr", "l": "Practice" },
-      { "v": "CEPA", "l": "Credential" },
-      { "v": "40+", "l": "Engagements" }
+      {
+        "v": "16yr",
+        "l": "Practice"
+      },
+      {
+        "v": "CEPA",
+        "l": "Credential"
+      },
+      {
+        "v": "40+",
+        "l": "Engagements"
+      }
     ]
   },
   "statsBand": [
-    { "v": "$90k+", "l": "Avg. annual engagement" },
-    { "v": "2–5yr", "l": "Founder runway to exit" },
-    { "v": "1 / industry", "l": "Per industry, per metro" }
+    {
+      "v": "$90k+",
+      "l": "Avg. annual engagement"
+    },
+    {
+      "v": "2–5yr",
+      "l": "Founder runway to exit"
+    },
+    {
+      "v": "1 / industry",
+      "l": "Per industry, per metro"
+    }
   ],
   "faq": [
-    { "q": "What does it cost to be listed?", "a": "Listing is free. Brand Voice Interview determines fit." },
-    { "q": "What does category exclusivity mean?", "a": "One listed planner per industry, per metro." },
-    { "q": "How qualified is the traffic?", "a": "Founder-intent visitors via parent directory SEO and editorial." },
-    { "q": "What happens after I apply?", "a": "A 15-minute intro call, then a Brand Voice Interview." }
+    {
+      "q": "What does it cost to be listed?",
+      "a": "Listing is free. Brand Voice Interview determines fit."
+    },
+    {
+      "q": "What does category exclusivity mean?",
+      "a": "One listed planner per industry, per metro."
+    },
+    {
+      "q": "How qualified is the traffic?",
+      "a": "Founder-intent visitors via parent directory SEO and editorial."
+    },
+    {
+      "q": "What happens after I apply?",
+      "a": "A 15-minute intro call, then a Brand Voice Interview."
+    }
   ],
   "testimonials": [],
   "sections": {

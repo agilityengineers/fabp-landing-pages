@@ -5,7 +5,15 @@ import type { ApplicationData } from "@/lib/forms";
 export async function POST(req: NextRequest) {
   const body = await req.json() as ApplicationData;
 
-  if (!body.name || !body.email || !body.profession || !body.city) {
+  if (
+    !body.name ||
+    !body.lastName ||
+    !body.company ||
+    !body.state ||
+    !body.email ||
+    !body.profession ||
+    !body.city
+  ) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
