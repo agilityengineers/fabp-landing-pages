@@ -421,10 +421,7 @@ export async function retryFailedSubmission(id: number): Promise<void> {
     );
     console.log(`[BD] Retry for submission ${id} succeeded`, responseText);
   } else {
-<<<<<<< HEAD
-=======
     // Roll the row back to pending so it can be retried again later.
->>>>>>> 71f3e96 (feat: log failed BD member creations to database for admin recovery)
     await query(
       `UPDATE failed_submissions
        SET status = 'pending', error_detail = $1
