@@ -1,9 +1,12 @@
 import { MetadataRoute } from "next";
-import { listIndustries } from "@/lib/config";
+import { listIndustries, HOME_SLUG } from "@/lib/config";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://findabusinesspro.com";
-  const industries = listIndustries().filter((i) => i.published);
+  const industries = listIndustries().filter(
+    (i) => i.published && i.slug !== HOME_SLUG
+  );
+  const home = listIndustries().find((i) => i.slug === HOME_SLUG);
 
   const industryUrls: MetadataRoute.Sitemap = industries.map((industry) => ({
     url: `${base}/${industry.slug}`,
@@ -15,7 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
       url: base,
-      lastModified: new Date(),
+      lastModified: home?.lastEdited ? new Date(home.lastEdited) : new Date(),
       changeFrequency: "weekly",
       priority: 1,
     },

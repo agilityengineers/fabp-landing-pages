@@ -1,0 +1,78 @@
+{
+  "slug": "business-services-professionals",
+  "industry": "Business Services Professionals",
+  "industryShort": "Pro",
+  "industryPlural": "Business Services Professionals",
+  "published": true,
+  "lastEdited": "2025-05-04T00:00:00.000Z",
+  "seo": {
+    "title": "Find a Business Pro — The directory business owners trust",
+    "description": "A category-exclusive directory of vetted CPAs, attorneys, fractional CFOs, business coaches, M&A advisors, and other professionals serving the business community."
+  },
+  "hero": {
+    "eyebrow": "An Invitation — for the professionals who serve business owners",
+    "headline": "The directory business owners search when they need <em>a pro they can trust</em>.",
+    "subhead": "A category-exclusive listing in the directory founders, operators, and owners turn to when they need a CPA, attorney, fractional CFO, coach, M&A advisor — or any vetted professional serving the business community.",
+    "primaryCta": "Book a 15-min intro call",
+    "secondaryCta": "Provider Playbook",
+    "heroImage": "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=900&q=80&auto=format&fit=crop",
+    "heroPhotoLabel": "FIND A BUSINESS PRO · NATIONWIDE"
+  },
+  "problem": {
+    "headline": "You didn't earn the credentials to become a marketer.",
+    "villains": [
+      { "t": "Ad spend that disappears", "b": "Google and LinkedIn budgets eaten by clicks that never become clients." },
+      { "t": "Invisible in a crowded market", "b": "Generic listings flatten years of expertise into another row." },
+      { "t": "Race-to-the-bottom marketplaces", "b": "Bid-style platforms reward speed and discounts, not expertise." },
+      { "t": "Referrals that ghost", "b": "Word-of-mouth tire-kickers who never sign." }
+    ]
+  },
+  "promise": {
+    "headline": "Ninety days from chaos to a clear, qualified pipeline — focused on the clients you actually want.",
+    "stats": [
+      { "v": "$10k+", "l": "Avg. engagement value" },
+      { "v": "1", "l": "Per category, per metro" },
+      { "v": "90 days", "l": "To first inbound" }
+    ]
+  },
+  "plan": [
+    { "time": "Step 01", "title": "Apply", "body": "A 5-minute application. We screen for credentials, market, and category availability." },
+    { "time": "Step 02", "title": "Brand voice interview", "body": "A 45-minute founder-led conversation that shapes how your listing sounds." },
+    { "time": "Step 03", "title": "Get listed & matched", "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue." }
+  ],
+  "profile": {
+    "name": "A vetted professional",
+    "role": "CPA · Attorney · CFO · Coach · Advisor",
+    "city": "Nationwide",
+    "stats": [
+      { "v": "10+", "l": "Categories" },
+      { "v": "1 / metro", "l": "Exclusive" },
+      { "v": "Vetted", "l": "Every listing" }
+    ]
+  },
+  "statsBand": [
+    { "v": "10+", "l": "Professional categories served" },
+    { "v": "1 / metro", "l": "Category-exclusive listings" },
+    { "v": "73%", "l": "Of buyers research a pro online before contacting" }
+  ],
+  "faq": [
+    { "q": "What does it cost to be listed?", "a": "Listing is free. After applying, we run a Brand Voice Interview to determine fit. Optional marketing services are discussed only if it makes sense for your situation." },
+    { "q": "What does category exclusivity mean?", "a": "One listed professional per category, per metro. When a buyer searches, your profile is the answer — not one of ten." },
+    { "q": "Which professions do you list?", "a": "CPAs, attorneys, fractional CFOs, business coaches, M&A advisors, exit-planning specialists, marketing agencies, and other vetted professionals serving the business community." },
+    { "q": "How qualified is the traffic?", "a": "Visitors arrive via the parent directory's organic SEO and editorial content — buyer-intent searches by category and metro." },
+    { "q": "What happens after I apply?", "a": "A 15-minute intro call to confirm fit, then the Brand Voice Interview. Listings typically go live within two weeks." }
+  ],
+  "testimonials": [],
+  "sections": {
+    "hero": true,
+    "problemPromise": true,
+    "plan": true,
+    "sampleProfile": false,
+    "statsBand": true,
+    "testimonials": false,
+    "founder": false,
+    "apply": true
+  },
+  "showFounder": false,
+  "accent": "navy"
+}

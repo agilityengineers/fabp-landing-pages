@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadIndustry, listIndustries, saveIndustry, deleteIndustry } from "@/lib/config";
+import { loadIndustry, listIndustries, saveIndustry, deleteIndustry, HOME_SLUG } from "@/lib/config";
 import { industrySchema } from "@/config/schema";
 import { cookies } from "next/headers";
 
@@ -46,6 +46,13 @@ export async function POST(req: NextRequest) {
   try {
     const industry = loadIndustry(slug);
 
+    if (slug === HOME_SLUG && (action === "unpublish" || action === "delete")) {
+      return NextResponse.json(
+        { error: "The home page config cannot be unpublished or deleted." },
+        { status: 400 }
+      );
+    }
+
     if (action === "publish") {
       saveIndustry(slug, { ...industry, published: true });
     } else if (action === "unpublish") {
@@ -72,6 +79,13 @@ export async function DELETE(req: NextRequest) {
 
   const { slug } = await req.json();
   if (!slug) return NextResponse.json({ error: "slug required" }, { status: 400 });
+
+  if (slug === HOME_SLUG) {
+    return NextResponse.json(
+      { error: "The home page config cannot be deleted." },
+      { status: 400 }
+    );
+  }
 
   deleteIndustry(slug);
   return NextResponse.json({ ok: true });

@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
-import { loadIndustry, loadBase, listSlugs } from "@/lib/config";
+import { loadIndustry, loadBase, listSlugs, HOME_SLUG } from "@/lib/config";
 import { Nav } from "@/components/landing/Nav";
 import { Hero } from "@/components/landing/Hero";
 import { ProblemPromise } from "@/components/landing/ProblemPromise";
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const slugs = listSlugs();
+  const slugs = listSlugs().filter((slug) => slug !== HOME_SLUG);
   return slugs.map((slug) => ({ industry: slug }));
 }
 
@@ -36,6 +36,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function IndustryPage({ params }: Props) {
   const { industry: slug } = await params;
+
+  // The home-page config is rendered at "/" — redirect any direct hits
+  // on its slug to the canonical root URL.
+  if (slug === HOME_SLUG) {
+    permanentRedirect("/");
+  }
 
   let cfg;
   let base;
