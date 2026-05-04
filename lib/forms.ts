@@ -17,6 +17,9 @@ export type ApplicationData = {
   submittedAt: string;
 };
 
+const BD_API_ENDPOINT = "https://www.findabusinesspro.com/api/v2/user/create";
+const BD_SUBSCRIPTION_ID = "21";
+
 function generateTempPassword(): string {
   return crypto.randomBytes(16).toString("base64url");
 }
@@ -31,44 +34,49 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
   });
 
   const apiKey = process.env.BD_API_KEY;
-  const rawApiUrl = process.env.BD_API_URL;
-  const apiUrl = rawApiUrl?.replace(/\/+$/, "");
 
-  if (!apiKey || !apiUrl) {
-    console.error("[BD] BD_API_KEY or BD_API_URL not configured — skipping member creation");
+  if (!apiKey) {
+    console.error("[BD] BD_API_KEY not configured — skipping member creation");
     return;
   }
 
   const tempPassword = generateTempPassword();
 
-  const payload = {
-    api_key: apiKey,
-    member_type: "Service Provider",
-    plan_name: "Industry Featured Plan - Invitation",
+  const fields: Record<string, string> = {
+    email: data.email,
+    password: tempPassword,
+    subscription_id: BD_SUBSCRIPTION_ID,
+    send_email_notifications: "1",
     first_name: data.name,
     last_name: data.lastName,
     company: data.company,
-    profession: data.profession,
     city: data.city,
     state: data.state,
-    phone: data.phone ?? "",
-    website: data.website ?? "",
-    email: data.email,
-    password: tempPassword,
+    member_type: "Service Provider",
   };
 
+  if (data.phone) fields.phone = data.phone;
+  if (data.website) fields.website = data.website;
+  if (data.profession) fields.industry = data.profession;
+
+  const body = new URLSearchParams(fields).toString();
+
   try {
-    const res = await fetch(`${apiUrl}/api/members/create`, {
+    const res = await fetch(BD_API_ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-Api-Key": apiKey,
+      },
+      body,
     });
 
+    const text = await res.text();
+
     if (!res.ok) {
-      const text = await res.text();
-      console.error(`[BD] Member creation failed: ${res.status} ${text}`);
+      console.error(`[BD] Member creation failed: ${res.status}`, text);
     } else {
-      console.log("[BD] Member created successfully");
+      console.log("[BD] Member created successfully", text);
     }
   } catch (err) {
     console.error("[BD] Member creation error:", err);
