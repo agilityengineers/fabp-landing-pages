@@ -95,6 +95,7 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
     password: tempPassword,
     subscription_id: BD_SUBSCRIPTION_ID,
     send_email_notifications: "1",
+    send_welcome_email: "1",
     first_name: data.name,
     last_name: data.lastName,
     company: data.company,
