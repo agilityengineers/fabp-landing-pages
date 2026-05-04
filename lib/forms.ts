@@ -437,6 +437,48 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
   }
 }
 
+export interface FailedSubmissionRow {
+  id: number;
+  name: string;
+  last_name: string | null;
+  company: string | null;
+  state: string | null;
+  email: string;
+  phone: string | null;
+  profession: string | null;
+  city: string | null;
+  years: string | null;
+  website: string | null;
+  spend: string | null;
+  fit: string | null;
+  industry_slug: string | null;
+  submitted_at: string | null;
+  error_detail: string | null;
+  created_at: string;
+  status: "pending" | "resolved" | "dismissed";
+  resolved_at: string | null;
+  retry_count: number;
+}
+
+export async function listFailedSubmissions(
+  status?: "pending" | "resolved" | "dismissed"
+): Promise<FailedSubmissionRow[]> {
+  const sql = status
+    ? `SELECT id, name, last_name, company, state, email, phone, profession,
+              city, years, website, spend, fit, industry_slug, submitted_at,
+              error_detail, created_at, status, resolved_at, retry_count
+       FROM failed_submissions
+       WHERE status = $1
+       ORDER BY created_at DESC`
+    : `SELECT id, name, last_name, company, state, email, phone, profession,
+              city, years, website, spend, fit, industry_slug, submitted_at,
+              error_detail, created_at, status, resolved_at, retry_count
+       FROM failed_submissions
+       ORDER BY created_at DESC`;
+  const result = status ? await query(sql, [status]) : await query(sql);
+  return result.rows as FailedSubmissionRow[];
+}
+
 export async function retryFailedSubmission(id: number): Promise<void> {
   const apiKey = process.env.BD_API_KEY;
   if (!apiKey) {

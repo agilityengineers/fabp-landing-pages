@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
 import { query } from "@/lib/db";
-import { retryFailedSubmission } from "@/lib/forms";
+import { retryFailedSubmission, listFailedSubmissions } from "@/lib/forms";
 
 const ALLOWED_STATUSES = ["pending", "resolved", "dismissed"] as const;
 type Status = (typeof ALLOWED_STATUSES)[number];
@@ -19,24 +19,8 @@ export async function GET(req: NextRequest) {
       ? (statusParam as Status)
       : null;
 
-  const sql = validStatus
-    ? `SELECT id, name, last_name, company, state, email, phone, profession,
-              city, years, website, spend, fit, industry_slug, submitted_at,
-              error_detail, created_at, status, resolved_at, retry_count
-       FROM failed_submissions
-       WHERE status = $1
-       ORDER BY created_at DESC`
-    : `SELECT id, name, last_name, company, state, email, phone, profession,
-              city, years, website, spend, fit, industry_slug, submitted_at,
-              error_detail, created_at, status, resolved_at, retry_count
-       FROM failed_submissions
-       ORDER BY created_at DESC`;
-
-  const result = validStatus
-    ? await query(sql, [validStatus])
-    : await query(sql);
-
-  return NextResponse.json(result.rows);
+  const rows = await listFailedSubmissions(validStatus ?? undefined);
+  return NextResponse.json(rows);
 }
 
 export async function POST(req: NextRequest) {

@@ -6,14 +6,15 @@ import { MAX_AUTO_RETRIES } from "@/lib/retry-config";
 interface FailedSubmission {
   id: number;
   name: string;
-  last_name: string;
-  company: string;
-  state: string;
+  last_name: string | null;
+  company: string | null;
+  state: string | null;
   email: string;
-  industry_slug: string;
-  submitted_at: string;
+  industry_slug: string | null;
+  submitted_at: string | null;
   error_detail: string | null;
   created_at: string;
+  resolved_at: string | null;
   status: string;
   retry_count: number;
 }
@@ -38,12 +39,13 @@ export function FailedSubmissionsTable() {
   const [rows, setRows] = useState<FailedSubmission[]>([]);
   const [filter, setFilter] = useState<FilterStatus>("pending");
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [actionId, setActionId] = useState<number | null>(null);
+  const [errorMap, setErrorMap] = useState<Record<number, string>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setFetchError(null);
     try {
       const url =
         filter === "all"
@@ -54,7 +56,7 @@ export function FailedSubmissionsTable() {
       const data = await res.json();
       setRows(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
+      setFetchError(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -66,20 +68,21 @@ export function FailedSubmissionsTable() {
 
   async function handleAction(id: number, action: "retry" | "dismiss") {
     setActionId(id);
+    setErrorMap((prev) => { const next = { ...prev }; delete next[id]; return next; });
     try {
       const res = await fetch("/api/admin/failed-submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, action }),
       });
+      const body = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        alert(`Action failed: ${body.error ?? res.statusText}`);
+        setErrorMap((prev) => ({ ...prev, [id]: body.error ?? res.statusText }));
         return;
       }
       await load();
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Unknown error");
+      setErrorMap((prev) => ({ ...prev, [id]: e instanceof Error ? e.message : "Unknown error" }));
     } finally {
       setActionId(null);
     }
@@ -135,76 +138,103 @@ export function FailedSubmissionsTable() {
           </div>
         )}
 
-        {!loading && error && (
+        {!loading && fetchError && (
           <div style={{ padding: "32px 18px", color: "oklch(40% 0.18 25)", fontSize: 14 }}>
-            Error: {error}
+            Error: {fetchError}
           </div>
         )}
 
-        {!loading && !error && rows.length === 0 && (
+        {!loading && !fetchError && rows.length === 0 && (
           <div style={{ padding: "32px 18px", color: "var(--ink-500)", fontSize: 14 }}>
             No {filter === "all" ? "" : filter + " "}submissions found.
           </div>
         )}
 
         {!loading &&
-          !error &&
+          !fetchError &&
           rows.map((row) => (
-            <div key={row.id} className="fs-row">
-              <div>
-                <div className="ind-name">
-                  {row.name} {row.last_name}
-                </div>
-                <div style={{ fontSize: 12, color: "var(--ink-500)", marginTop: 2 }}>
-                  {row.company}
-                </div>
-              </div>
-              <div style={{ fontSize: 13, color: "var(--ink-700)" }}>
-                {row.industry_slug}
-              </div>
-              <div style={{ fontSize: 13, color: "var(--ink-500)" }}>
-                {formatDate(row.submitted_at ?? row.created_at)}
-              </div>
-              <div style={{ fontSize: 13, color: "var(--ink-700)", fontVariantNumeric: "tabular-nums" }}>
-                {row.retry_count} / {MAX_AUTO_RETRIES}
-              </div>
-              <div>
-                {row.status === "pending" ? (
-                  <RetryBadge retryCount={row.retry_count} />
-                ) : (
-                  <span className={`ind-status ${row.status === "resolved" ? "published" : "draft"}`}>
-                    {row.status}
-                  </span>
-                )}
-              </div>
-              <div
-                className="fs-error"
-                title={row.error_detail ?? undefined}
-              >
-                {row.error_detail ?? <span style={{ color: "var(--ink-300)" }}>—</span>}
-              </div>
-              <div className="ind-actions">
-                {row.status === "pending" && (
-                  <>
-                    <button
-                      className="ind-action primary"
-                      disabled={actionId === row.id}
-                      onClick={() => handleAction(row.id, "retry")}
-                    >
-                      {actionId === row.id ? "…" : "Retry"}
-                    </button>
-                    <button
-                      className="ind-action danger"
-                      disabled={actionId === row.id}
-                      onClick={() => handleAction(row.id, "dismiss")}
-                    >
-                      Dismiss
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
+            <SubmissionRow
+              key={row.id}
+              row={row}
+              loading={actionId === row.id}
+              error={errorMap[row.id]}
+              onRetry={() => handleAction(row.id, "retry")}
+              onDismiss={() => handleAction(row.id, "dismiss")}
+            />
           ))}
+      </div>
+    </div>
+  );
+}
+
+function SubmissionRow({
+  row,
+  loading,
+  error,
+  onRetry,
+  onDismiss,
+}: {
+  row: FailedSubmission;
+  loading: boolean;
+  error?: string;
+  onRetry: () => void;
+  onDismiss: () => void;
+}) {
+  const fullName = [row.name, row.last_name].filter(Boolean).join(" ");
+
+  return (
+    <div className="fs-row">
+      <div>
+        <div className="ind-name">{fullName}</div>
+        <div style={{ fontSize: 12, color: "var(--ink-500)", marginTop: 2 }}>
+          {row.company}
+        </div>
+      </div>
+      <div style={{ fontSize: 13, color: "var(--ink-700)" }}>
+        {row.industry_slug ?? "—"}
+      </div>
+      <div style={{ fontSize: 13, color: "var(--ink-500)" }}>
+        {formatDate(row.submitted_at ?? row.created_at)}
+      </div>
+      <div style={{ fontSize: 13, color: "var(--ink-700)", fontVariantNumeric: "tabular-nums" }}>
+        {row.retry_count} / {MAX_AUTO_RETRIES}
+      </div>
+      <div>
+        {row.status === "pending" ? (
+          <RetryBadge retryCount={row.retry_count} />
+        ) : (
+          <span className={`ind-status ${row.status === "resolved" ? "published" : "draft"}`}>
+            {row.status}
+          </span>
+        )}
+      </div>
+      <div className="fs-error" title={row.error_detail ?? undefined}>
+        {row.error_detail ?? <span style={{ color: "var(--ink-300)" }}>—</span>}
+      </div>
+      <div className="ind-actions">
+        {row.status === "pending" && (
+          <>
+            <button
+              className="ind-action primary"
+              disabled={loading}
+              onClick={onRetry}
+            >
+              {loading ? "…" : "Retry"}
+            </button>
+            <button
+              className="ind-action danger"
+              disabled={loading}
+              onClick={onDismiss}
+            >
+              Dismiss
+            </button>
+            {error && (
+              <span style={{ color: "oklch(50% 0.18 25)", fontSize: 11, alignSelf: "center" }}>
+                {error}
+              </span>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
