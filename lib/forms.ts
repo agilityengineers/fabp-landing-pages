@@ -1,5 +1,10 @@
+import crypto from "crypto";
+
 export type ApplicationData = {
   name: string;
+  lastName: string;
+  company: string;
+  state: string;
   email: string;
   phone?: string;
   profession: string;
@@ -12,17 +17,60 @@ export type ApplicationData = {
   submittedAt: string;
 };
 
-// TODO(decision): Wire to Resend / HubSpot / GoHighLevel / Calendly before launch.
-// Until then, logs to console. Replace this function body with real integration.
-export async function submitApplication(data: ApplicationData): Promise<void> {
-  console.log("[FABP Application]", JSON.stringify(data, null, 2));
+function generateTempPassword(): string {
+  return crypto.randomBytes(16).toString("base64url");
+}
 
-  // TODO(decision): Resend integration example:
-  // const resend = new Resend(process.env.RESEND_API_KEY);
-  // await resend.emails.send({
-  //   from: "noreply@invitation.findabusinesspro.com",
-  //   to: "admin@findabusinesspro.com",
-  //   subject: `New application: ${data.name} (${data.profession})`,
-  //   text: JSON.stringify(data, null, 2),
-  // });
+export async function submitApplication(data: ApplicationData): Promise<void> {
+  console.log("[FABP Application] received submission", {
+    profession: data.profession,
+    city: data.city,
+    state: data.state,
+    industrySlug: data.industrySlug,
+    submittedAt: data.submittedAt,
+  });
+
+  const apiKey = process.env.BD_API_KEY;
+  const rawApiUrl = process.env.BD_API_URL;
+  const apiUrl = rawApiUrl?.replace(/\/+$/, "");
+
+  if (!apiKey || !apiUrl) {
+    console.error("[BD] BD_API_KEY or BD_API_URL not configured — skipping member creation");
+    return;
+  }
+
+  const tempPassword = generateTempPassword();
+
+  const payload = {
+    api_key: apiKey,
+    member_type: "Service Provider",
+    plan_name: "Industry Featured Plan - Invitation",
+    first_name: data.name,
+    last_name: data.lastName,
+    company: data.company,
+    profession: data.profession,
+    city: data.city,
+    state: data.state,
+    phone: data.phone ?? "",
+    website: data.website ?? "",
+    email: data.email,
+    password: tempPassword,
+  };
+
+  try {
+    const res = await fetch(`${apiUrl}/api/members/create`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`[BD] Member creation failed: ${res.status} ${text}`);
+    } else {
+      console.log("[BD] Member created successfully");
+    }
+  } catch (err) {
+    console.error("[BD] Member creation error:", err);
+  }
 }
