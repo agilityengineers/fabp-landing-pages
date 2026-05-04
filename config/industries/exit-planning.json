@@ -1,0 +1,77 @@
+{
+  "slug": "exit-planning",
+  "industry": "Business Exit Planners",
+  "industryShort": "Exit Planner",
+  "industryPlural": "Business Exit Planners",
+  "published": false,
+  "lastEdited": "2025-05-04T00:00:00.000Z",
+  "seo": {
+    "title": "An Invitation for Business Exit Planners — Find a Business Pro",
+    "description": "A category-exclusive listing in the directory founders search when 'eventually' becomes 'soon.'"
+  },
+  "hero": {
+    "eyebrow": "An Invitation — for Business Exit Planners",
+    "headline": "Be found at the start of the exit — <em>not the end</em>.",
+    "subhead": "A category-exclusive listing in the directory founders search when 'eventually' becomes 'soon.'",
+    "primaryCta": "Book a 15-min intro call",
+    "secondaryCta": "Provider Playbook",
+    "heroImage": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=900&q=80&auto=format&fit=crop",
+    "heroPhotoLabel": "EXIT PLANNER · PHOENIX, AZ"
+  },
+  "problem": {
+    "headline": "You didn't earn the credentials to become a marketer.",
+    "villains": [
+      { "t": "Ad spend that misses the moment", "b": "Channels can't target the founder whose CFO just floated the question." },
+      { "t": "Invisible in a crowded market", "b": "Generalist sites flatten exit planning into 'business consulting.'" },
+      { "t": "Per-engagement bidding", "b": "For multi-year work measured in valuation gain." },
+      { "t": "Referrals that arrive late", "b": "After the founder has already chosen poorly." }
+    ]
+  },
+  "promise": {
+    "headline": "Where founders look at the earliest exit signals — and find a planner before they need one.",
+    "stats": [
+      { "v": "$90k+", "l": "Avg. annual engagement" },
+      { "v": "1", "l": "Per industry, per metro" },
+      { "v": "90 days", "l": "To first inbound" }
+    ]
+  },
+  "plan": [
+    { "time": "Step 01", "title": "Apply", "body": "A 5-minute application. We screen for credentials, industry focus, and market availability." },
+    { "time": "Step 02", "title": "Brand voice interview", "body": "A 45-minute founder-led conversation that shapes how your listing sounds." },
+    { "time": "Step 03", "title": "Get listed & matched", "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue." }
+  ],
+  "profile": {
+    "name": "T. Halberstam, CEPA",
+    "role": "Exit + Succession Planner",
+    "city": "Phoenix, AZ",
+    "stats": [
+      { "v": "16yr", "l": "Practice" },
+      { "v": "CEPA", "l": "Credential" },
+      { "v": "40+", "l": "Engagements" }
+    ]
+  },
+  "statsBand": [
+    { "v": "$90k+", "l": "Avg. annual engagement" },
+    { "v": "2–5yr", "l": "Founder runway to exit" },
+    { "v": "1 / industry", "l": "Per industry, per metro" }
+  ],
+  "faq": [
+    { "q": "What does it cost to be listed?", "a": "Listing is free. Brand Voice Interview determines fit." },
+    { "q": "What does category exclusivity mean?", "a": "One listed planner per industry, per metro." },
+    { "q": "How qualified is the traffic?", "a": "Founder-intent visitors via parent directory SEO and editorial." },
+    { "q": "What happens after I apply?", "a": "A 15-minute intro call, then a Brand Voice Interview." }
+  ],
+  "testimonials": [],
+  "sections": {
+    "hero": true,
+    "problemPromise": true,
+    "plan": true,
+    "sampleProfile": false,
+    "statsBand": false,
+    "testimonials": false,
+    "founder": false,
+    "apply": true
+  },
+  "showFounder": false,
+  "accent": "navy"
+}
