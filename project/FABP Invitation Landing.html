@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>An Invitation — Find a Business Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="configs.jsx"></script>
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "industry": "attorneys",
+  "secHero": true,
+  "secProblemPromise": true,
+  "secPlan": true,
+  "secStats": false,
+  "secSampleProfile": false,
+  "secTestimonials": false,
+  "secApply": true,
+  "showFounder": false,
+  "accent": "navy"
+}/*EDITMODE-END*/;
+
+const ACCENT_PRESETS = {
+  navy:    { deep: "#0b2a47", main: "#1f5181" },
+  midnight:{ deep: "#0a1f33", main: "#163f6a" },
+  ink:     { deep: "#0e0d0b", main: "#34322e" },
+  forest:  { deep: "#1f3a26", main: "#3f6b1d" },
+};
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  useEffect(() => {
+    const a = ACCENT_PRESETS[t.accent] || ACCENT_PRESETS.navy;
+    document.documentElement.style.setProperty("--accent", a.main);
+    document.documentElement.style.setProperty("--accent-deep", a.deep);
+  }, [t.accent]);
+
+  const cfg = INDUSTRIES[t.industry] || INDUSTRIES.cpas;
+  const base = INDUSTRY_BASE;
+  const gotoApply = () => document.getElementById("apply")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const gotoSecondary = () => alert("INTEGRATION POINT: link to /provider-playbook.pdf");
+
+  return (
+    <div>
+      <TopNav cfg={cfg} base={base} currentIndustry={t.industry} onSwitchIndustry={(v) => setTweak("industry", v)} onCta={gotoApply} scrolled={scrolled} />
+      {t.secHero && <Hero cfg={cfg} onCta={gotoApply} onSecondary={gotoSecondary} />}
+      {t.secProblemPromise && <ProblemPromise cfg={cfg} />}
+      {t.secPlan && <Plan cfg={cfg} />}
+      {t.secStats && <StatsBand cfg={cfg} />}
+      {t.secSampleProfile && <SampleProfile cfg={cfg} />}
+      {t.secTestimonials && <Testimonials cfg={cfg} />}
+      {t.secApply && <Apply cfg={cfg} base={base} showFounder={t.showFounder} />}
+      <Footer base={base} />
+
+      <div className="handoff-flag">⚑ Replit handoff flags · 8 open decisions documented in chat</div>
+
+      <TweaksPanel title="Admin & Tweaks">
+        <TweakSection label="Preview industry" />
+        <TweakSelect label="Industry"
+          value={t.industry}
+          options={Object.keys(INDUSTRIES).map((k) => ({ value: k, label: INDUSTRIES[k].industry }))}
+          onChange={(v) => setTweak("industry", v)} />
+        <TweakSection label="Module visibility" />
+        <TweakToggle label="Hero" value={t.secHero} onChange={(v) => setTweak("secHero", v)} />
+        <TweakToggle label="Problem → Promise" value={t.secProblemPromise} onChange={(v) => setTweak("secProblemPromise", v)} />
+        <TweakToggle label="Plan" value={t.secPlan} onChange={(v) => setTweak("secPlan", v)} />
+        <TweakToggle label="Stats band" value={t.secStats} onChange={(v) => setTweak("secStats", v)} />
+        <TweakToggle label="Sample profile" value={t.secSampleProfile} onChange={(v) => setTweak("secSampleProfile", v)} />
+        <TweakToggle label="Testimonials" value={t.secTestimonials} onChange={(v) => setTweak("secTestimonials", v)} />
+        <TweakToggle label="Apply + FAQ" value={t.secApply} onChange={(v) => setTweak("secApply", v)} />
+        <TweakSection label="Founder" />
+        <TweakToggle label="Show founder block" value={t.showFounder} onChange={(v) => setTweak("showFounder", v)} />
+        <TweakSection label="Theme" />
+        <TweakRadio label="Accent" value={t.accent}
+          options={["navy", "midnight", "ink", "forest"]}
+          onChange={(v) => setTweak("accent", v)} />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Admin Preview — Find a Business Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500;6..72,600&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body { background: var(--paper-2); }
+  .admin-shell { min-height: 100vh; display: grid; grid-template-columns: 240px 1fr; }
+  @media (max-width: 800px) { .admin-shell { grid-template-columns: 1fr; } }
+  .admin-side { background: var(--ink-900); color: #fff; padding: 22px 18px; position: sticky; top: 0; height: 100vh; }
+  .admin-logo { display: flex; align-items: center; gap: 10px; padding-bottom: 18px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
+  .admin-logo-mark { width: 28px; height: 28px; background: #fff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--ink-900); font-weight: 700; font-size: 13px; font-family: var(--serif); }
+  .admin-logo-text { font-family: var(--serif); font-size: 13px; line-height: 1.25; min-width: 0; }
+  .admin-logo-text > div:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .admin-logo-text > div:last-child { font-size: 10px; font-family: var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-top: 2px; }
+  .admin-nav { margin-top: 18px; display: flex; flex-direction: column; gap: 2px; }
+  .admin-nav a { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 8px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13.5px; }
+  .admin-nav a.active { background: rgba(255,255,255,0.08); color: #fff; }
+  .admin-nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+  .admin-side-foot { position: absolute; bottom: 18px; left: 18px; right: 18px; padding-top: 14px; border-top: 0.5px solid rgba(255,255,255,0.1); font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
+  .admin-main { padding: 28px 36px 80px; max-width: 1100px; }
+  .admin-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .admin-h1 { font-family: var(--serif); font-size: 32px; letter-spacing: -0.018em; margin: 0; }
+  .admin-sub { color: var(--ink-500); font-size: 14px; margin: 4px 0 0; }
+  .admin-card { background: #fff; border: 0.5px solid var(--rule); border-radius: var(--r-md); }
+  .ind-row { display: grid; grid-template-columns: 1.4fr 1fr 110px 1fr 200px; gap: 16px; align-items: center; padding: 14px 18px; border-bottom: 0.5px solid var(--rule); font-size: 14px; }
+  .ind-row:last-child { border-bottom: 0; }
+  .ind-row-head { background: var(--paper-2); font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-500); }
+  .ind-name { font-weight: 600; color: var(--ink-900); }
+  .ind-slug { font-family: var(--mono); font-size: 12px; color: var(--ink-500); }
+  .ind-status { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; }
+  .ind-status.published { background: oklch(95% 0.05 140); color: var(--green-700); }
+  .ind-status.draft { background: var(--paper-2); color: var(--ink-500); border: 0.5px solid var(--rule); }
+  .ind-status::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .ind-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .ind-action { font-size: 12px; padding: 6px 10px; border: 0.5px solid var(--rule); border-radius: 6px; background: #fff; cursor: pointer; color: var(--ink-700); }
+  .ind-action:hover { border-color: var(--ink-300); color: var(--ink-900); }
+  .ind-action.primary { background: var(--accent-deep); color: #fff; border-color: var(--accent-deep); }
+  .ind-action.danger:hover { color: oklch(50% 0.18 25); border-color: oklch(75% 0.15 25); }
+  .gen-card { padding: 28px; }
+  .gen-step { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-deep); }
+  .gen-h2 { font-family: var(--serif); font-size: 26px; margin: 6px 0 6px; letter-spacing: -0.014em; }
+  .gen-p { color: var(--ink-500); font-size: 14px; margin: 0 0 22px; max-width: 560px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+  .field label { font-size: 12px; color: var(--ink-700); font-weight: 500; }
+  .field input, .field textarea, .field select {
+    font: 14.5px var(--sans); color: var(--ink-900); padding: 11px 13px; border: 0.5px solid var(--rule);
+    background: #fff; border-radius: var(--r-md); outline: none;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent-deep); box-shadow: 0 0 0 3px oklch(94% 0.05 240); }
+  .field textarea { min-height: 84px; resize: vertical; font-family: var(--sans); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+  .field-hint { font-size: 12px; color: var(--ink-500); }
+  .gen-cta { display: inline-flex; align-items: center; gap: 10px; padding: 13px 20px; background: var(--accent-deep); color: #fff; border: 0; border-radius: var(--r-md); font: 500 14px var(--sans); cursor: pointer; }
+  .gen-cta:hover { background: var(--ink-900); }
+  .gen-cta:disabled { opacity: 0.6; cursor: wait; }
+  .ai-spark { display: inline-block; }
+  .gen-loading { padding: 60px 24px; text-align: center; }
+  .gen-loading-bar { width: 200px; height: 2px; background: var(--ink-100); border-radius: 2px; margin: 18px auto; overflow: hidden; }
+  .gen-loading-bar::after { content: ""; display: block; width: 40%; height: 100%; background: var(--accent-deep); animation: slide 1.4s infinite; }
+  @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+  .gen-loading-text { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-500); }
+  .form-section { padding: 24px 28px; border-bottom: 0.5px solid var(--rule); }
+  .form-section:last-of-type { border-bottom: 0; }
+  .form-section-h { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent-deep); margin: 0 0 16px; display: flex; align-items: center; justify-content: space-between; }
+  .regen-btn { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; padding: 5px 9px; border: 0.5px solid var(--rule); border-radius: 999px; background: #fff; color: var(--ink-700); cursor: pointer; }
+  .regen-btn:hover { background: var(--paper-2); color: var(--accent-deep); }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px dashed var(--rule); font-size: 14px; }
+  .toggle-row:last-child { border-bottom: 0; }
+  .toggle-sw { width: 36px; height: 20px; background: var(--ink-200); border-radius: 999px; position: relative; cursor: pointer; transition: background .2s; }
+  .toggle-sw.on { background: var(--accent-deep); }
+  .toggle-sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .2s; }
+  .toggle-sw.on::after { transform: translateX(16px); }
+  .accent-pick { display: flex; gap: 8px; }
+  .accent-pick button { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid transparent; cursor: pointer; }
+  .accent-pick button.on { border-color: var(--ink-900); }
+  .save-bar { position: sticky; bottom: 0; background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); border-top: 0.5px solid var(--rule); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .save-bar-left { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-500); }
+  .save-bar-right { display: flex; gap: 8px; }
+  .villain-edit { display: grid; grid-template-columns: 36px 1fr; gap: 12px; padding: 10px 0; border-top: 0.5px dashed var(--rule); }
+  .villain-edit:first-child { border-top: 0; }
+  .villain-edit-num { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--accent-deep); padding-top: 12px; }
+  .preview-banner { background: oklch(96% 0.05 90); border-bottom: 0.5px solid oklch(85% 0.08 80); padding: 8px 16px; text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: oklch(35% 0.1 70); }
+  .preview-banner a { color: oklch(35% 0.12 70); }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="preview-banner">⚑ Admin UX preview · Not wired to real backend · <a href="FABP Invitation Landing.html">← back to landing prototype</a></div>
+<div id="root"></div>
+<script type="text/babel" src="configs.jsx"></script>
+<script type="text/babel">
+const { useState } = React;
+
+const SEED_ROWS = [
+  { slug: "cpas", name: "CPAs", published: true, edited: "2 days ago" },
+  { slug: "attorneys", name: "Business Attorneys", published: true, edited: "5 days ago" },
+  { slug: "fractional-cfos", name: "Fractional CFOs", published: true, edited: "1 wk ago" },
+  { slug: "business-coaches", name: "Business Coaches", published: true, edited: "1 wk ago" },
+  { slug: "ma-advisors", name: "M&A Advisors", published: true, edited: "2 wks ago" },
+  { slug: "agile-consulting", name: "Agile Consultants", published: false, edited: "2 wks ago" },
+  { slug: "marketing-agencies", name: "Marketing Agencies", published: true, edited: "3 wks ago" },
+  { slug: "exit-planning", name: "Business Exit Planners", published: false, edited: "Draft" },
+];
+
+const ACCENTS = [
+  { k: "navy", c: "#0b2a47" },
+  { k: "midnight", c: "#0a1f33" },
+  { k: "ink", c: "#0e0d0b" },
+  { k: "forest", c: "#1f3a26" },
+];
+
+function Sidebar({ view }) {
+  return (
+    <aside className="admin-side">
+      <div className="admin-logo">
+        <div className="admin-logo-mark">F</div>
+        <div className="admin-logo-text"><div>Find a Business Pro</div><div>Admin</div></div>
+      </div>
+      <nav className="admin-nav">
+        <a href="#" className={view === "list" ? "active" : ""}>📋 Industries</a>
+        <a href="#">📊 Applications</a>
+        <a href="#">⚙️ Brand & founder</a>
+        <a href="#">🔌 Integrations</a>
+      </nav>
+      <div className="admin-side-foot">v0.1 · Mock</div>
+    </aside>
+  );
+}
+
+function ListView({ onCreate, onEdit }) {
+  return (
+    <div className="admin-main">
+      <div className="admin-bar">
+        <div>
+          <h1 className="admin-h1">Industries</h1>
+          <p className="admin-sub">8 industries · 6 published · 2 draft</p>
+        </div>
+        <button className="ind-action primary" onClick={onCreate} style={{padding: "10px 16px", fontSize: 13}}>
+          ✨ New industry
+        </button>
+      </div>
+      <div className="admin-card">
+        <div className="ind-row ind-row-head">
+          <span>Industry</span><span>Slug</span><span>Status</span><span>Last edited</span><span></span>
+        </div>
+        {SEED_ROWS.map((r) => (
+          <div key={r.slug} className="ind-row">
+            <div>
+              <div className="ind-name">{r.name}</div>
+            </div>
+            <div className="ind-slug">/{r.slug}</div>
+            <div><span className={`ind-status ${r.published ? "published" : "draft"}`}>{r.published ? "Published" : "Draft"}</span></div>
+            <div style={{color: "var(--ink-500)", fontSize: 13}}>{r.edited}</div>
+            <div className="ind-actions">
+              <button className="ind-action" onClick={() => onEdit(r.slug)}>Edit</button>
+              <button className="ind-action">View</button>
+              <button className="ind-action">{r.published ? "Unpublish" : "Publish"}</button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GeneratorView({ onBack, onGenerated }) {
+  const [name, setName] = useState("");
+  const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(false);
+  function generate() {
+    if (!name.trim()) return;
+    setLoading(true);
+    setTimeout(() => onGenerated({ name, notes }), 1800);
+  }
+  return (
+    <div className="admin-main">
+      <div className="admin-bar">
+        <div>
+          <button className="ind-action" onClick={onBack} style={{marginBottom: 10}}>← Industries</button>
+          <h1 className="admin-h1">New industry</h1>
+          <p className="admin-sub">Step 1 of 2 · Tell us the industry — Anthropic drafts the page.</p>
+        </div>
+      </div>
+      <div className="admin-card gen-card">
+        {loading ? (
+          <div className="gen-loading">
+            <div className="gen-step">✨ Generating with Claude</div>
+            <div className="gen-loading-bar" />
+            <div className="gen-loading-text">Drafting headlines · villains · promise · plan · sample profile · FAQ</div>
+          </div>
+        ) : (
+          <>
+            <div className="gen-step">Step 1 / 2</div>
+            <h2 className="gen-h2">What industry are you adding?</h2>
+            <p className="gen-p">Type the profession name as you'd say it on a podcast. Claude will draft the entire landing page in your voice — you'll review and edit before anything ships.</p>
+            <div className="field">
+              <label>Industry name</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Commercial Real Estate Brokers" />
+              <div className="field-hint">Slug auto-generates: <span style={{fontFamily:"var(--mono)", fontSize:11}}>/{(name || "industry-name").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g,"")}</span></div>
+            </div>
+            <div className="field">
+              <label>Anything specific to mention? (optional)</label>
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="e.g. focus on industrial &amp; flex space, mid-market deal sizes, key pain is sourcing institutional buyers" />
+              <div className="field-hint">Pricing band, target metro, niche, key pain points — anything you want Claude to weave in.</div>
+            </div>
+            <button className="gen-cta" onClick={generate} disabled={!name.trim()}>
+              <span className="ai-spark">✨</span> Generate draft with Claude
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EditView({ slug, fromGenerated, onBack }) {
+  const seed = INDUSTRIES[slug] || INDUSTRIES.cpas;
+  const [draft, setDraft] = useState({
+    name: fromGenerated?.name || seed.industry,
+    headline: seed.hero.headline,
+    subhead: seed.hero.subhead,
+    promiseHeadline: seed.promise.headline,
+    villains: seed.problem.villains,
+    profile: seed.profile,
+    faq: seed.faq,
+    statsBand: seed.statsBand || [],
+  });
+  const [toggles, setToggles] = useState({ hero: true, problemPromise: true, plan: true, statsBand: false, sampleProfile: false, testimonials: false, apply: true, founder: false });
+  const [accent, setAccent] = useState("navy");
+  const isNew = !!fromGenerated;
+
+  function update(k, v) { setDraft(d => ({ ...d, [k]: v })); }
+  function updateVillain(i, k, v) { setDraft(d => ({ ...d, villains: d.villains.map((x, j) => j === i ? { ...x, [k]: v } : x) })); }
+  function updateFaq(i, k, v) { setDraft(d => ({ ...d, faq: d.faq.map((x, j) => j === i ? { ...x, [k]: v } : x) })); }
+  function tog(k) { setToggles(t => ({ ...t, [k]: !t[k] })); }
+
+  return (
+    <div className="admin-main">
+      <div className="admin-bar">
+        <div>
+          <button className="ind-action" onClick={onBack} style={{marginBottom: 10}}>← Industries</button>
+          <h1 className="admin-h1">{isNew ? "Review draft" : `Edit: ${draft.name}`}</h1>
+          <p className="admin-sub">{isNew ? "Claude drafted the page below. Edit anything before publishing." : "Edit, regenerate any section, or publish/unpublish."}</p>
+        </div>
+        {isNew && (
+          <div style={{padding:"6px 12px", background:"oklch(95% 0.06 140)", color:"var(--green-700)", borderRadius: 999, fontFamily:"var(--mono)", fontSize:10, letterSpacing:"0.14em", textTransform:"uppercase"}}>✨ AI-generated draft</div>
+        )}
+      </div>
+      <div className="admin-card">
+        {/* Identifiers */}
+        <div className="form-section">
+          <div className="form-section-h">Identifiers</div>
+          <div className="field-row">
+            <div className="field"><label>Display name (plural)</label><input value={draft.name} onChange={(e) => update("name", e.target.value)} /></div>
+            <div className="field"><label>Slug</label><input value={(draft.name || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g,"")} disabled /></div>
+          </div>
+        </div>
+
+        {/* Hero */}
+        <div className="form-section">
+          <div className="form-section-h">Hero <button className="regen-btn">✨ Regenerate</button></div>
+          <div className="field"><label>Headline (use &lt;em&gt; for italic phrase)</label><input value={draft.headline} onChange={(e) => update("headline", e.target.value)} /></div>
+          <div className="field"><label>Subhead</label><textarea value={draft.subhead} onChange={(e) => update("subhead", e.target.value)} /></div>
+        </div>
+
+        {/* Problem */}
+        <div className="form-section">
+          <div className="form-section-h">Villains (4) <button className="regen-btn">✨ Regenerate</button></div>
+          {draft.villains.map((v, i) => (
+            <div key={i} className="villain-edit">
+              <div className="villain-edit-num">{String(i+1).padStart(2,"0")}</div>
+              <div>
+                <div className="field" style={{marginBottom:8}}><input value={v.t} onChange={(e) => updateVillain(i,"t",e.target.value)} /></div>
+                <div className="field" style={{marginBottom:0}}><textarea value={v.b} onChange={(e) => updateVillain(i,"b",e.target.value)} style={{minHeight:50}} /></div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Promise */}
+        <div className="form-section">
+          <div className="form-section-h">Promise <button className="regen-btn">✨ Regenerate</button></div>
+          <div className="field"><label>Promise headline (90-day arc)</label><textarea value={draft.promiseHeadline} onChange={(e) => update("promiseHeadline", e.target.value)} /></div>
+        </div>
+
+        {/* Sample profile */}
+        <div className="form-section">
+          <div className="form-section-h">Sample profile <button className="regen-btn">✨ Regenerate</button></div>
+          <div className="field-row">
+            <div className="field"><label>Name</label><input value={draft.profile.name} onChange={(e) => update("profile", {...draft.profile, name: e.target.value})} /></div>
+            <div className="field"><label>Role</label><input value={draft.profile.role} onChange={(e) => update("profile", {...draft.profile, role: e.target.value})} /></div>
+          </div>
+          <div className="field"><label>City</label><input value={draft.profile.city} onChange={(e) => update("profile", {...draft.profile, city: e.target.value})} /></div>
+        </div>
+
+        {/* FAQ */}
+        <div className="form-section">
+          <div className="form-section-h">FAQ (4) <button className="regen-btn">✨ Regenerate</button></div>
+          {draft.faq.map((f, i) => (
+            <div key={i} className="villain-edit">
+              <div className="villain-edit-num">{String(i+1).padStart(2,"0")}</div>
+              <div>
+                <div className="field" style={{marginBottom:8}}><input value={f.q} onChange={(e) => updateFaq(i,"q",e.target.value)} /></div>
+                <div className="field" style={{marginBottom:0}}><textarea value={f.a} onChange={(e) => updateFaq(i,"a",e.target.value)} style={{minHeight:60}} /></div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Section toggles */}
+        <div className="form-section">
+          <div className="form-section-h">Section visibility</div>
+          {[
+            ["hero","Hero"],
+            ["problemPromise","Problem → Promise"],
+            ["plan","Plan"],
+            ["statsBand","Stats band"],
+            ["sampleProfile","Sample profile"],
+            ["testimonials","Testimonials (hides if empty)"],
+            ["apply","Apply + FAQ"],
+            ["founder","Show founder block"],
+          ].map(([k, label]) => (
+            <div key={k} className="toggle-row">
+              <span>{label}</span>
+              <div className={`toggle-sw ${toggles[k] ? "on" : ""}`} onClick={() => tog(k)} role="switch" aria-checked={toggles[k]} />
+            </div>
+          ))}
+        </div>
+
+        {/* Theme */}
+        <div className="form-section">
+          <div className="form-section-h">Accent</div>
+          <div className="accent-pick">
+            {ACCENTS.map(a => (
+              <button key={a.k} className={accent === a.k ? "on" : ""} style={{background: a.c}} onClick={() => setAccent(a.k)} aria-label={a.k} />
+            ))}
+          </div>
+        </div>
+
+        {/* Save bar */}
+        <div className="save-bar">
+          <div className="save-bar-left"><span style={{color:"var(--green-700)"}}>●</span> Auto-saved · just now</div>
+          <div className="save-bar-right">
+            <button className="ind-action">Preview</button>
+            <button className="ind-action">Save draft</button>
+            <button className="ind-action primary">{isNew ? "Publish" : "Save & publish"}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [view, setView] = useState("list"); // list | new | edit
+  const [editingSlug, setEditingSlug] = useState(null);
+  const [generated, setGenerated] = useState(null);
+  return (
+    <div className="admin-shell">
+      <Sidebar view={view} />
+      {view === "list" && <ListView onCreate={() => { setGenerated(null); setView("new"); }} onEdit={(s) => { setEditingSlug(s); setGenerated(null); setView("edit"); }} />}
+      {view === "new" && <GeneratorView onBack={() => setView("list")} onGenerated={(g) => { setGenerated(g); setEditingSlug("cpas"); setView("edit"); }} />}
+      {view === "edit" && <EditView slug={editingSlug} fromGenerated={generated} onBack={() => setView("list")} />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
