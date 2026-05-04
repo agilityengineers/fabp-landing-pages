@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -14,11 +15,14 @@ export function Sidebar() {
   return (
     <aside className="admin-side">
       <div className="admin-logo">
-        <div className="admin-logo-mark">F</div>
-        <div className="admin-logo-text">
-          <div>Find a Business Pro</div>
-          <div>Admin</div>
-        </div>
+        <Image
+          src="/New-White-Logo-2026_1777935147444.png"
+          alt="Find a Business Pro"
+          width={320}
+          height={90}
+          className="admin-logo-image"
+          priority
+        />
       </div>
       <nav className="admin-nav" aria-label="Admin navigation">
         <Link href="/admin" className={isActive("/admin") ? "active" : ""}>
@@ -32,9 +36,7 @@ export function Sidebar() {
         </Link>
       </nav>
       <div style={{ flex: 1 }} />
-      <div className="admin-side-foot">
-        v1.0 · Find a Business Pro
-      </div>
+      <div className="admin-side-foot">v1.0 · Find a Business Pro</div>
     </aside>
   );
 }
