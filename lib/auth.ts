@@ -28,7 +28,12 @@ export async function clearAuthCookie(): Promise<void> {
 export function checkPassword(input: string): boolean {
   const adminPassword = process.env.ADMIN_PASSWORD;
   if (!adminPassword) {
-    // TODO(decision): Set ADMIN_PASSWORD env var before launch
+    if (process.env.NODE_ENV === "production") {
+      console.error(
+        "ADMIN_PASSWORD is not set in production — refusing to authenticate. Set the env var on Replit."
+      );
+      return false;
+    }
     console.warn("ADMIN_PASSWORD not set — using default dev password");
     return input === "admin";
   }

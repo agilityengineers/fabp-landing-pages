@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Industry } from "@/config/schema";
+import { PublishToggle } from "./PublishToggle";
 
 interface IndustriesTableProps {
   industries: Industry[];
@@ -69,18 +70,6 @@ function IndustryRow({ ind }: { ind: Industry }) {
         <PublishToggle slug={ind.slug} published={ind.published} />
       </div>
     </div>
-  );
-}
-
-function PublishToggle({ slug, published }: { slug: string; published: boolean }) {
-  return (
-    <form action={`/api/industries`} method="POST">
-      <input type="hidden" name="slug" value={slug} />
-      <input type="hidden" name="action" value={published ? "unpublish" : "publish"} />
-      <button type="submit" className="ind-action">
-        {published ? "Unpublish" : "Publish"}
-      </button>
-    </form>
   );
 }
 
