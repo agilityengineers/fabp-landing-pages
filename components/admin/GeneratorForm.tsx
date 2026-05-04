@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function GeneratorForm() {
@@ -8,15 +8,42 @@ export function GeneratorForm() {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [slugTaken, setSlugTaken] = useState(false);
 
-  const slug = name
+  const derivedSlug = name
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "") || "industry-name";
+    .replace(/^-|-$/g, "");
+  const slug = derivedSlug || "industry-name";
+
+  useEffect(() => {
+    if (!derivedSlug) {
+      setSlugTaken(false);
+      return;
+    }
+    const ctrl = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/industries/check?slug=${encodeURIComponent(derivedSlug)}`,
+          { signal: ctrl.signal }
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as { exists?: boolean };
+        setSlugTaken(Boolean(data.exists));
+      } catch {
+        // ignore aborts and network blips — server still enforces 409
+      }
+    }, 300);
+    return () => {
+      ctrl.abort();
+      clearTimeout(timer);
+    };
+  }, [derivedSlug]);
 
   async function generate() {
-    if (!name.trim()) return;
+    if (!name.trim() || slugTaken) return;
     setLoading(true);
     setError("");
     try {
@@ -84,6 +111,17 @@ export function GeneratorForm() {
                 Slug auto-generates:{" "}
                 <span style={{ fontFamily: "var(--mono)", fontSize: 11 }}>/{slug}</span>
               </div>
+              {slugTaken && (
+                <div
+                  className="field-hint"
+                  style={{ color: "var(--danger, #b91c1c)", marginTop: 6 }}
+                  role="alert"
+                >
+                  ⚠️ An industry with slug{" "}
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 11 }}>/{derivedSlug}</span>{" "}
+                  already exists. Choose a different name.
+                </div>
+              )}
             </div>
             <div className="field">
               <label>Anything specific to mention? (optional)</label>
@@ -97,7 +135,11 @@ export function GeneratorForm() {
                 weave in.
               </div>
             </div>
-            <button className="gen-cta" onClick={generate} disabled={!name.trim()}>
+            <button
+              className="gen-cta"
+              onClick={generate}
+              disabled={!name.trim() || slugTaken}
+            >
               <span>✨</span> Generate draft with Claude
             </button>
           </>
