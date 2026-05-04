@@ -18,7 +18,6 @@ export type ApplicationData = {
 };
 
 const BD_API_ENDPOINT = "https://www.findabusinesspro.com/api/v2/user/create";
-const BD_SUBSCRIPTION_ID = "21";
 
 function generateTempPassword(): string {
   return crypto.randomBytes(16).toString("base64url");
@@ -78,6 +77,7 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
   });
 
   const apiKey = process.env.BD_API_KEY;
+  const subscriptionId = process.env.BD_SUBSCRIPTION_ID;
 
   if (!apiKey) {
     console.error("[BD] BD_API_KEY not configured — skipping member creation");
@@ -88,24 +88,29 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
     return;
   }
 
+  if (!subscriptionId) {
+    console.error("[BD] BD_SUBSCRIPTION_ID not configured — skipping member creation");
+    return;
+  }
+
   const tempPassword = generateTempPassword();
 
   const fields: Record<string, string> = {
     email: data.email,
     password: tempPassword,
-    subscription_id: BD_SUBSCRIPTION_ID,
+    subscription_id: subscriptionId,
     send_email_notifications: "1",
     first_name: data.name,
     last_name: data.lastName,
     company: data.company,
+    listing_type: "Business",
     city: data.city,
-    state: data.state,
-    member_type: "Service Provider",
+    state_ln: data.state,
+    position: data.profession,
   };
 
   if (data.phone) fields.phone = data.phone;
   if (data.website) fields.website = data.website;
-  if (data.profession) fields.industry = data.profession;
 
   const body = new URLSearchParams(fields).toString();
 
@@ -115,6 +120,7 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         "X-Api-Key": apiKey,
+        "accept": "application/json",
       },
       body,
     });
