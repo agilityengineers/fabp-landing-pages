@@ -22,7 +22,7 @@ export function Sidebar() {
     <aside className="admin-side">
       <div className="admin-logo">
         <Image
-          src="/logo.png"
+          src="/New-White-Logo-2026.png"
           alt="Find a Business Pro"
           width={880}
           height={440}
