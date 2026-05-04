@@ -49,7 +49,7 @@ function makeIndustry({ key, slug, industry, short, headline, ctxLine, villains,
     },
     plan: [
       { time: "Step 01", title: "Apply", body: "A 5-minute application. We screen for credentials, market, and category availability." },
-      { time: "Step 02", title: "Brand voice interview", body: "A 45-minute founder-led conversation that shapes how your listing sounds." },
+      { time: "Step 02", title: "Brand voice interview", body: "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes." },
       { time: "Step 03", title: "Get listed & matched", body: "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue." },
     ],
     profile,
