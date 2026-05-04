@@ -107,7 +107,7 @@ async function logFailedSubmission(
   }
 }
 
-async function sendFailureAlert(
+export async function sendFailureAlert(
   applicant: { name: string; lastName: string; email: string },
   errorDetail: string
 ): Promise<void> {

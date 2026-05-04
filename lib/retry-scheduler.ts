@@ -1,5 +1,5 @@
 import { query } from "@/lib/db";
-import { retryFailedSubmission } from "@/lib/forms";
+import { retryFailedSubmission, sendFailureAlert } from "@/lib/forms";
 
 const MAX_AUTO_RETRIES = 3;
 const RATE_LIMIT_DELAY_MS = 2_000;
@@ -44,14 +44,20 @@ export async function runAutoRetry(): Promise<{
 
   try {
     const result = await query(
-      `SELECT id, retry_count
+      `SELECT id, retry_count, name, last_name, email
        FROM failed_submissions
        WHERE status = 'pending' AND retry_count < $1
        ORDER BY created_at ASC`,
       [MAX_AUTO_RETRIES]
     );
 
-    const rows = result.rows as { id: number; retry_count: number }[];
+    const rows = result.rows as {
+      id: number;
+      retry_count: number;
+      name: string;
+      last_name: string;
+      email: string;
+    }[];
 
     if (rows.length === 0) {
       console.log(`${tag} No eligible pending submissions found`);
@@ -61,7 +67,7 @@ export async function runAutoRetry(): Promise<{
     console.log(`${tag} Found ${rows.length} submission(s) to retry`);
 
     for (let i = 0; i < rows.length; i++) {
-      const { id, retry_count } = rows[i];
+      const { id, retry_count, name, last_name, email } = rows[i];
       attempted++;
 
       try {
@@ -82,6 +88,10 @@ export async function runAutoRetry(): Promise<{
           console.warn(
             `${tag} submission ${id} has exhausted all ${MAX_AUTO_RETRIES} automatic retries — ` +
               `leaving in pending status for admin review`
+          );
+          await sendFailureAlert(
+            { name, lastName: last_name, email },
+            `Auto-retry exhausted: this submission has failed ${MAX_AUTO_RETRIES} times and will no longer be retried automatically. Manual action is required.\n\nLast error: ${msg}`
           );
         }
       }
