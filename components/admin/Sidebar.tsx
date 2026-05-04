@@ -1,10 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-interface SidebarProps {
-  activeNav?: string;
-}
+export function Sidebar() {
+  const pathname = usePathname();
 
-export function Sidebar({ activeNav = "industries" }: SidebarProps) {
+  function isActive(href: string) {
+    if (href === "/admin") return pathname === "/admin";
+    return pathname.startsWith(href);
+  }
+
   return (
     <aside className="admin-side">
       <div className="admin-logo">
@@ -15,13 +21,13 @@ export function Sidebar({ activeNav = "industries" }: SidebarProps) {
         </div>
       </div>
       <nav className="admin-nav" aria-label="Admin navigation">
-        <Link href="/admin" className={activeNav === "industries" ? "active" : ""}>
+        <Link href="/admin" className={isActive("/admin") ? "active" : ""}>
           📋 Industries
         </Link>
-        <Link href="/admin/applications" className={activeNav === "applications" ? "active" : ""}>
+        <Link href="/admin/applications" className={isActive("/admin/applications") ? "active" : ""}>
           📊 Applications
         </Link>
-        <Link href="/admin/settings" className={activeNav === "settings" ? "active" : ""}>
+        <Link href="/admin/settings" className={isActive("/admin/settings") ? "active" : ""}>
           ⚙️ Brand & Founder
         </Link>
       </nav>

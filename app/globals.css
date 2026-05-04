@@ -514,6 +514,19 @@ a { color: inherit; }
 .ind-action.primary { background: var(--accent-deep); color: #fff; border-color: var(--accent-deep); }
 .ind-action.primary:hover { background: var(--ink-900); border-color: var(--ink-900); }
 .ind-action.danger:hover { color: oklch(50% 0.18 25); border-color: oklch(75% 0.15 25); }
+.ind-action:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Failed Submissions table */
+.fs-row { display: grid; grid-template-columns: 1.4fr 0.8fr 0.9fr 0.5fr 1.2fr 1.4fr 160px; gap: 14px; align-items: center; padding: 14px 18px; border-bottom: 0.5px solid var(--rule); font-size: 14px; }
+.fs-row:last-child { border-bottom: 0; }
+.fs-row-head { background: var(--paper-2); font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-500); }
+.fs-error { font-size: 12px; color: var(--ink-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; cursor: default; }
+
+/* Retry status badges */
+.retry-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+.retry-badge::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.retry-badge.eligible { background: oklch(95% 0.05 140); color: var(--green-700); }
+.retry-badge.exhausted { background: oklch(96% 0.07 60); color: oklch(42% 0.14 50); border: 0.5px solid oklch(86% 0.1 60); }
 
 /* Generator / Edit */
 .gen-card { padding: 28px; }
