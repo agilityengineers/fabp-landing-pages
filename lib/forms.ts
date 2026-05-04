@@ -170,6 +170,10 @@ export async function sendFailureAlert(
     } else {
       const fromAddress =
         process.env.ALERT_EMAIL_FROM ?? "alerts@findabusinesspro.com";
+      const fromName =
+        process.env.ALERT_EMAIL_FROM_NAME ?? "FABP Alerts";
+      const subjectPrefix =
+        process.env.ALERT_EMAIL_SUBJECT_PREFIX ?? "[FABP]";
 
       if (!process.env.ALERT_EMAIL_FROM) {
         console.warn(
@@ -177,6 +181,8 @@ export async function sendFailureAlert(
             "This domain must be verified in Resend or emails will fail to deliver."
         );
       }
+
+      const from = `${fromName} <${fromAddress}>`;
 
       const resend = new Resend(resendApiKey);
 
@@ -196,9 +202,9 @@ export async function sendFailureAlert(
       alerts.push(
         resend.emails
           .send({
-            from: fromAddress,
+            from,
             to: alertEmail,
-            subject: `[FABP] Member creation failed for ${esc(fullName)}`,
+            subject: `${subjectPrefix} Member creation failed for ${esc(fullName)}`,
             html: htmlBody,
           })
           .then((result) => {
