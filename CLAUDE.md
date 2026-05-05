@@ -60,6 +60,26 @@ Originated as a Claude Design handoff (`README.md`, `chats/`, `project/`) — th
 - `lib/forms.ts` `submitApplication` currently logs to console. The `TODO(decision)` comments mark the integration points (Resend, HubSpot) that need wiring before launch — leave the TODO markers in place when extending.
 - `next.config.ts` only allowlists `images.unsplash.com` and `www.findabusinesspro.com` for `next/image` — add new remote hosts there.
 
+## Responsive conventions
+
+Mobile-first. Write base styles for the smallest viewport, then layer up with `min-width` queries. The canonical breakpoint scale (matches Tailwind defaults) is declared in `app/globals.css`:
+
+- `sm: 640px` — large phone / very small tablet portrait
+- `md: 768px` — tablet portrait
+- `lg: 1024px` — tablet landscape / small laptop
+- `xl: 1280px` — desktop
+
+Use these breakpoints in any new `@media` rule. Legacy `max-width` queries at 700/800/900/980/1100 are migrating onto this scale section-by-section as components are refactored — don't add new ones at non-standard values.
+
+Fluid spacing tokens (declared in `:root`) replace hand-tuned per-breakpoint padding:
+
+- `--gutter` — horizontal page padding
+- `--section-y-sm` / `--section-y-md` / `--section-y-lg` — vertical section padding
+- `--stack-gap` — default vertical rhythm inside a stacked section
+- `--tap-min: 44px` — minimum tap target on touch surfaces (WCAG 2.5.5)
+
+`next/image` instances must include a `sizes` attribute reflecting the rendered width per breakpoint — otherwise Next ships the largest source on every device. Check `Nav.tsx` / `Sidebar.tsx` for examples.
+
 ## Environment variables
 
 See `.env.example`. Required: `ANTHROPIC_API_KEY`, `ADMIN_PASSWORD`. Optional: `NEXT_PUBLIC_SITE_URL` (used by `sitemap.ts` and OG metadata), `RESEND_API_KEY`, `HUBSPOT_TOKEN`.

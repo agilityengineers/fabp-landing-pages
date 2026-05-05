@@ -27,6 +27,7 @@ export function Sidebar() {
           width={880}
           height={440}
           className="admin-logo-img"
+          sizes="180px"
           priority
         />
       </div>
