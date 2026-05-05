@@ -165,6 +165,10 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
                 We&rsquo;ll review and reach out within two business days to schedule your
                 15-minute intro call.
               </p>
+              <p>
+                You&rsquo;ll also receive a welcome email shortly with sign-in details for
+                your member account.
+              </p>
               <div className="form-thanks-meta">REF · APP-{ref}</div>
               {cfg.sections.featuredOffer ? (
                 <a

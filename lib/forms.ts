@@ -72,6 +72,9 @@ function generateTempPassword(): string {
   return crypto.randomBytes(16).toString("base64url");
 }
 
+// The `password` field below is rendered to new members by BD's welcome email
+// template (via its password merge variable). Do not remove it — visitors do
+// not choose a password on the form, so the email is their only way in.
 function buildBdFields(
   data: ApplicationData,
   tempPassword: string,
