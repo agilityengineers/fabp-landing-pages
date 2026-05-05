@@ -168,21 +168,21 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
               <div className="form-thanks-meta">REF · APP-{ref}</div>
               {cfg.sections.featuredOffer ? (
                 <a
-                  className="form-thanks-link"
+                  className="form-thanks-link btn btn-primary btn-lg"
                   href={cfg.featuredOffer?.brandVoiceInterviewUrl ?? base.links.brandVoiceInterviewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Continue to your Brand Voice Interview →
+                  Continue to your Brand Voice Interview <span className="arr" aria-hidden="true">→</span>
                 </a>
               ) : (
                 <a
-                  className="form-thanks-link"
+                  className="form-thanks-link btn btn-primary btn-lg"
                   href={base.brand.parentUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  While you wait, browse the directory →
+                  While you wait, browse the directory <span className="arr" aria-hidden="true">→</span>
                 </a>
               )}
             </div>
