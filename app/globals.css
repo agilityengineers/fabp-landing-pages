@@ -67,6 +67,22 @@
   --r-md: 12px;
   --r-lg: 20px;
 
+  /* Breakpoints (reference; @media cannot read CSS vars — keep values in sync) */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+
+  /* Fluid spacing tokens — adopt in section padding to avoid hand-tuning per breakpoint */
+  --gutter:        clamp(16px, 5vw, 32px);
+  --section-y-sm:  clamp(32px, 6vw, 56px);
+  --section-y-md:  clamp(40px, 7vw, 72px);
+  --section-y-lg:  clamp(48px, 8vw, 96px);
+  --stack-gap:     clamp(20px, 3vw, 32px);
+
+  /* Touch target floor — meet WCAG 2.5.5 (Target Size) on mobile */
+  --tap-min: 44px;
+
   --sh-1: 0 1px 2px rgba(11,42,71,0.06), 0 0 0 1px rgba(11,42,71,0.05);
   --sh-2: 0 6px 18px -6px rgba(11,42,71,0.16), 0 0 0 1px rgba(11,42,71,0.06);
   --sh-3: 0 32px 70px -24px rgba(11,42,71,0.32), 0 0 0 1px rgba(11,42,71,0.06);

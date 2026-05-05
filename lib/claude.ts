@@ -23,7 +23,7 @@ Voice guidelines:
 - Promise headline: 90-day arc from chaos to clarity, specific to the profession
 - Promise stats: 3 believable metrics (avg. engagement value, exclusivity, timeline)
 - Plan: always exactly 3 steps — Apply → Brand Voice Interview → Get listed & matched
-- FAQ: cover pricing (always free to list), exclusivity, traffic quality, what happens after applying
+- FAQ: cover pricing (listing is free; Featured is also free for pros who complete the Brand Voice Interview), exclusivity, traffic quality, what happens after applying
 - Tone: understated confidence. Short sentences. No exclamation marks.`;
 
 function buildPrompt(name: string, notes: string, exampleConfig: Industry): string {

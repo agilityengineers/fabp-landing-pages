@@ -10,6 +10,11 @@ export function loadBase(): Base {
   return baseSchema.parse(raw);
 }
 
+export function saveBase(data: Base): void {
+  const validated = baseSchema.parse(data);
+  fs.writeFileSync(BASE_FILE, JSON.stringify(validated, null, 2), "utf-8");
+}
+
 export function loadIndustry(slug: string): Industry {
   const file = path.join(INDUSTRIES_DIR, `${slug}.json`);
   if (!fs.existsSync(file)) {

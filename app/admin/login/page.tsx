@@ -1,10 +1,9 @@
 "use client";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const from = params.get("from") ?? "/admin";
   const [password, setPassword] = useState("");
@@ -22,8 +21,9 @@ function LoginForm() {
         body: JSON.stringify({ password }),
       });
       if (res.ok) {
-        router.push(from);
-        router.refresh();
+        // Hard navigation guarantees the just-set cookie is sent on the next request.
+        // router.push can race the cookie store and bounce back to /admin/login.
+        window.location.assign(from);
       } else {
         setError("Incorrect password.");
         setLoading(false);
