@@ -26,6 +26,12 @@ export function SettingsForm({ base: initial }: SettingsFormProps) {
     scheduleSave(next);
   }
 
+  function updateLinks(key: keyof Base["links"], value: string) {
+    const next = { ...draft, links: { ...draft.links, [key]: value } };
+    setDraft(next);
+    scheduleSave(next);
+  }
+
   const scheduleSave = useCallback((data: Base) => {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => autoSave(data), 800);
@@ -57,8 +63,8 @@ export function SettingsForm({ base: initial }: SettingsFormProps) {
     <div className="admin-main">
       <div className="admin-bar">
         <div>
-          <h1 className="admin-h1">Brand &amp; Founder</h1>
-          <p className="admin-sub">Global settings shared across all industry pages.</p>
+          <h1 className="admin-h1">Site settings</h1>
+          <p className="admin-sub">Global brand, link, and founder defaults shared across every industry page.</p>
         </div>
       </div>
 
@@ -102,6 +108,45 @@ export function SettingsForm({ base: initial }: SettingsFormProps) {
                 onChange={(e) => updateBrand("phone", e.target.value)}
               />
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="admin-card" style={{ marginBottom: 24 }}>
+        <div className="form-section">
+          <p className="form-section-h">Links</p>
+          <div className="field">
+            <label>Basic plan signup URL</label>
+            <input
+              type="url"
+              value={draft.links.bdBasicSignupUrl}
+              onChange={(e) => updateLinks("bdBasicSignupUrl", e.target.value)}
+            />
+            <span className="field-hint">
+              Brilliant Directories signup URL for the free basic listing plan.
+            </span>
+          </div>
+          <div className="field">
+            <label>Featured plan signup URL</label>
+            <input
+              type="url"
+              value={draft.links.bdFeaturedSignupUrl}
+              onChange={(e) => updateLinks("bdFeaturedSignupUrl", e.target.value)}
+            />
+            <span className="field-hint">
+              BD signup URL for the paid Featured plan. Used when the Featured-via-interview offer is OFF for an industry.
+            </span>
+          </div>
+          <div className="field">
+            <label>Brand Voice Interview URL</label>
+            <input
+              type="url"
+              value={draft.links.brandVoiceInterviewUrl}
+              onChange={(e) => updateLinks("brandVoiceInterviewUrl", e.target.value)}
+            />
+            <span className="field-hint">
+              Where applicants are sent after submitting the form when the Featured-via-interview offer is enabled.
+            </span>
           </div>
         </div>
       </div>
