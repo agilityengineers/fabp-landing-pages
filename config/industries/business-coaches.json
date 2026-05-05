@@ -1,22 +1,23 @@
 {
   "slug": "business-coaches",
+  "professionId": 13,
   "industry": "Business Coaches",
   "industryShort": "Business Coach",
   "industryPlural": "Business Coaches",
   "published": true,
   "lastEdited": "2025-05-04T00:00:00.000Z",
   "seo": {
-    "title": "An Invitation for Business Coaches \u2014 Find a Business Pro",
+    "title": "An Invitation for Business Coaches — Find a Business Pro",
     "description": "A category-exclusive listing inside the directory founders trust when they're ready to invest in real outside guidance."
   },
   "hero": {
-    "eyebrow": "An Invitation \u2014 for Business Coaches",
+    "eyebrow": "An Invitation — for Business Coaches",
     "headline": "Be found by founders who are ready, <em>not just curious</em>.",
     "subhead": "A category-exclusive listing inside the directory founders trust when they're ready to invest in real outside guidance.",
     "primaryCta": "Book a 15-min intro call",
     "secondaryCta": "Provider Playbook",
     "heroImage": "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=900&q=80&auto=format&fit=crop",
-    "heroPhotoLabel": "BUSINESS COACH \u00b7 DENVER, CO"
+    "heroPhotoLabel": "BUSINESS COACH · DENVER, CO"
   },
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
@@ -40,7 +41,7 @@
     ]
   },
   "promise": {
-    "headline": "Where serious founders look for serious coaches \u2014 without the noise.",
+    "headline": "Where serious founders look for serious coaches — without the noise.",
     "stats": [
       {
         "v": "$28k",
@@ -70,7 +71,7 @@
     {
       "time": "Step 03",
       "title": "Get listed & matched",
-      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you \u2014 not a queue."
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
     }
   ],
   "profile": {
@@ -133,8 +134,7 @@
     "statsBand": false,
     "testimonials": false,
     "founder": false,
-    "apply": true,
-    "featuredOffer": false
+    "apply": true
   },
   "showFounder": false,
   "accent": "navy"

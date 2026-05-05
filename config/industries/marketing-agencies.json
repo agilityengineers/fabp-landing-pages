@@ -1,22 +1,23 @@
 {
   "slug": "marketing-agencies",
+  "professionId": 5,
   "industry": "Marketing Agencies",
   "industryShort": "Agency",
   "industryPlural": "Marketing Agencies",
   "published": true,
   "lastEdited": "2025-05-04T00:00:00.000Z",
   "seo": {
-    "title": "An Invitation for Marketing Agencies \u2014 Find a Business Pro",
+    "title": "An Invitation for Marketing Agencies — Find a Business Pro",
     "description": "A category-exclusive listing in the directory business owners search when they're ready to stop running marketing themselves."
   },
   "hero": {
-    "eyebrow": "An Invitation \u2014 for Marketing Agencies",
+    "eyebrow": "An Invitation — for Marketing Agencies",
     "headline": "Be found by founders who already <em>value what you do</em>.",
     "subhead": "A category-exclusive listing in the directory business owners search when they're ready to stop running marketing themselves.",
     "primaryCta": "Book a 15-min intro call",
     "secondaryCta": "Provider Playbook",
     "heroImage": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=900&q=80&auto=format&fit=crop",
-    "heroPhotoLabel": "MARKETING AGENCY \u00b7 NASHVILLE, TN"
+    "heroPhotoLabel": "MARKETING AGENCY · NASHVILLE, TN"
   },
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
@@ -40,7 +41,7 @@
     ]
   },
   "promise": {
-    "headline": "Where founders search when they're done DIY-ing it \u2014 and you're the considered choice.",
+    "headline": "Where founders search when they're done DIY-ing it — and you're the considered choice.",
     "stats": [
       {
         "v": "$120k+",
@@ -70,7 +71,7 @@
     {
       "time": "Step 03",
       "title": "Get listed & matched",
-      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you \u2014 not a queue."
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
     }
   ],
   "profile": {
@@ -117,7 +118,7 @@
     },
     {
       "q": "How is this different from Clutch?",
-      "a": "We curate, position, and amplify \u2014 not aggregate."
+      "a": "We curate, position, and amplify — not aggregate."
     },
     {
       "q": "What happens after I apply?",
@@ -133,8 +134,7 @@
     "statsBand": false,
     "testimonials": false,
     "founder": false,
-    "apply": true,
-    "featuredOffer": false
+    "apply": true
   },
   "showFounder": false,
   "accent": "navy"

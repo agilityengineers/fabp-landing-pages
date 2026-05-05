@@ -1,22 +1,23 @@
 {
   "slug": "fractional-cfos",
+  "professionId": 6,
   "industry": "Fractional CFOs",
   "industryShort": "Fractional CFO",
   "industryPlural": "Fractional CFOs",
   "published": true,
   "lastEdited": "2025-05-04T00:00:00.000Z",
   "seo": {
-    "title": "An Invitation for Fractional CFOs \u2014 Find a Business Pro",
+    "title": "An Invitation for Fractional CFOs — Find a Business Pro",
     "description": "A category-exclusive listing in the directory founders search when the books, the runway, or the raise demands a real CFO."
   },
   "hero": {
-    "eyebrow": "An Invitation \u2014 for Fractional CFOs",
+    "eyebrow": "An Invitation — for Fractional CFOs",
     "headline": "Be matched to founders who already <em>know they need you</em>.",
     "subhead": "A category-exclusive listing in the directory founders search when the books, the runway, or the raise demands a real CFO.",
     "primaryCta": "Book a 15-min intro call",
     "secondaryCta": "Provider Playbook",
     "heroImage": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&q=80&auto=format&fit=crop",
-    "heroPhotoLabel": "FRACTIONAL CFO \u00b7 AUSTIN, TX"
+    "heroPhotoLabel": "FRACTIONAL CFO · AUSTIN, TX"
   },
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
@@ -40,7 +41,7 @@
     ]
   },
   "promise": {
-    "headline": "Where founders look at fundraises, restructures, and pre-exit moments \u2014 and find you.",
+    "headline": "Where founders look at fundraises, restructures, and pre-exit moments — and find you.",
     "stats": [
       {
         "v": "$48k",
@@ -70,12 +71,12 @@
     {
       "time": "Step 03",
       "title": "Get listed & matched",
-      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you \u2014 not a queue."
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
     }
   ],
   "profile": {
     "name": "A. Okafor, MBA",
-    "role": "Fractional CFO \u2014 Series A\u2192C",
+    "role": "Fractional CFO — Series A→C",
     "city": "Austin, TX",
     "stats": [
       {
@@ -133,8 +134,7 @@
     "statsBand": false,
     "testimonials": false,
     "founder": false,
-    "apply": true,
-    "featuredOffer": false
+    "apply": true
   },
   "showFounder": false,
   "accent": "navy"

@@ -1,22 +1,23 @@
 {
   "slug": "cpas",
+  "professionId": 4,
   "industry": "CPAs",
   "industryShort": "CPA",
   "industryPlural": "CPAs",
   "published": true,
   "lastEdited": "2025-05-04T00:00:00.000Z",
   "seo": {
-    "title": "An Invitation for CPAs \u2014 Find a Business Pro",
+    "title": "An Invitation for CPAs — Find a Business Pro",
     "description": "A category-exclusive listing in the directory business owners search when they need a CPA they can trust."
   },
   "hero": {
-    "eyebrow": "An Invitation \u2014 for CPAs",
+    "eyebrow": "An Invitation — for CPAs",
     "headline": "Stop competing for attention. Start being <em>chosen</em>.",
-    "subhead": "A category-exclusive listing in the directory business owners search when they need a CPA they can trust \u2014 so qualified clients find you instead of the other way around.",
+    "subhead": "A category-exclusive listing in the directory business owners search when they need a CPA they can trust — so qualified clients find you instead of the other way around.",
     "primaryCta": "Book a 15-min intro call",
     "secondaryCta": "Provider Playbook",
     "heroImage": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=900&q=80&auto=format&fit=crop",
-    "heroPhotoLabel": "CPA \u00b7 CHARLOTTE, NC"
+    "heroPhotoLabel": "CPA · CHARLOTTE, NC"
   },
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
@@ -40,7 +41,7 @@
     ]
   },
   "promise": {
-    "headline": "Ninety days from chaos to a clear, qualified pipeline \u2014 focused on the clients you actually want.",
+    "headline": "Ninety days from chaos to a clear, qualified pipeline — focused on the clients you actually want.",
     "stats": [
       {
         "v": "$8.4k",
@@ -48,7 +49,7 @@
       },
       {
         "v": "1",
-        "l": "Per metro \u00b7 exclusive"
+        "l": "Per metro · exclusive"
       },
       {
         "v": "90 days",
@@ -70,7 +71,7 @@
     {
       "time": "Step 03",
       "title": "Get listed & matched",
-      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you \u2014 not a queue."
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
     }
   ],
   "profile": {
@@ -113,11 +114,11 @@
     },
     {
       "q": "What does category exclusivity mean?",
-      "a": "One listed CPA per metro. When a buyer searches, your profile is the answer \u2014 not one of ten."
+      "a": "One listed CPA per metro. When a buyer searches, your profile is the answer — not one of ten."
     },
     {
       "q": "How qualified is the traffic?",
-      "a": "Visitors arrive via the parent directory's organic SEO and editorial content \u2014 buyer-intent searches by category and metro."
+      "a": "Visitors arrive via the parent directory's organic SEO and editorial content — buyer-intent searches by category and metro."
     },
     {
       "q": "What happens after I apply?",
@@ -133,8 +134,7 @@
     "statsBand": false,
     "testimonials": false,
     "founder": false,
-    "apply": true,
-    "featuredOffer": false
+    "apply": true
   },
   "showFounder": false,
   "accent": "navy"

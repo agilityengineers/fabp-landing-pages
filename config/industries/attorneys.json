@@ -1,22 +1,23 @@
 {
   "slug": "attorneys",
+  "professionId": 3,
   "industry": "Business Attorneys",
   "industryShort": "Attorney",
   "industryPlural": "Business Attorneys",
   "published": true,
   "lastEdited": "2025-05-04T00:00:00.000Z",
   "seo": {
-    "title": "An Invitation for Business Attorneys \u2014 Find a Business Pro",
+    "title": "An Invitation for Business Attorneys — Find a Business Pro",
     "description": "A category-exclusive listing in the directory business owners search when the stakes are legal."
   },
   "hero": {
-    "eyebrow": "An Invitation \u2014 for Business Attorneys",
+    "eyebrow": "An Invitation — for Business Attorneys",
     "headline": "Be the first call, not the <em>third referral</em>.",
-    "subhead": "A category-exclusive listing in the directory business owners search when the stakes are legal \u2014 formations, contracts, exits, disputes.",
+    "subhead": "A category-exclusive listing in the directory business owners search when the stakes are legal — formations, contracts, exits, disputes.",
     "primaryCta": "Book a 15-min intro call",
     "secondaryCta": "Provider Playbook",
     "heroImage": "https://images.unsplash.com/photo-1589994965851-a8f479c573a9?w=900&q=80&auto=format&fit=crop",
-    "heroPhotoLabel": "ATTORNEY \u00b7 ATLANTA, GA"
+    "heroPhotoLabel": "ATTORNEY · ATLANTA, GA"
   },
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
@@ -40,7 +41,7 @@
     ]
   },
   "promise": {
-    "headline": "From reactive to chosen \u2014 by founders, COOs, and CFOs at the moments that matter.",
+    "headline": "From reactive to chosen — by founders, COOs, and CFOs at the moments that matter.",
     "stats": [
       {
         "v": "$22.5k",
@@ -70,7 +71,7 @@
     {
       "time": "Step 03",
       "title": "Get listed & matched",
-      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you \u2014 not a queue."
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
     }
   ],
   "profile": {
@@ -133,8 +134,7 @@
     "statsBand": false,
     "testimonials": false,
     "founder": false,
-    "apply": true,
-    "featuredOffer": false
+    "apply": true
   },
   "showFounder": false,
   "accent": "navy"

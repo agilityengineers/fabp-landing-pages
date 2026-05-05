@@ -1,22 +1,23 @@
 {
   "slug": "exit-planning",
+  "professionId": 23,
   "industry": "Business Exit Planners",
   "industryShort": "Exit Planner",
   "industryPlural": "Business Exit Planners",
   "published": false,
   "lastEdited": "2025-05-04T00:00:00.000Z",
   "seo": {
-    "title": "An Invitation for Business Exit Planners \u2014 Find a Business Pro",
+    "title": "An Invitation for Business Exit Planners — Find a Business Pro",
     "description": "A category-exclusive listing in the directory founders search when 'eventually' becomes 'soon.'"
   },
   "hero": {
-    "eyebrow": "An Invitation \u2014 for Business Exit Planners",
-    "headline": "Be found at the start of the exit \u2014 <em>not the end</em>.",
+    "eyebrow": "An Invitation — for Business Exit Planners",
+    "headline": "Be found at the start of the exit — <em>not the end</em>.",
     "subhead": "A category-exclusive listing in the directory founders search when 'eventually' becomes 'soon.'",
     "primaryCta": "Book a 15-min intro call",
     "secondaryCta": "Provider Playbook",
     "heroImage": "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=900&q=80&auto=format&fit=crop",
-    "heroPhotoLabel": "EXIT PLANNER \u00b7 PHOENIX, AZ"
+    "heroPhotoLabel": "EXIT PLANNER · PHOENIX, AZ"
   },
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
@@ -40,7 +41,7 @@
     ]
   },
   "promise": {
-    "headline": "Where founders look at the earliest exit signals \u2014 and find a planner before they need one.",
+    "headline": "Where founders look at the earliest exit signals — and find a planner before they need one.",
     "stats": [
       {
         "v": "$90k+",
@@ -70,7 +71,7 @@
     {
       "time": "Step 03",
       "title": "Get listed & matched",
-      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you \u2014 not a queue."
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
     }
   ],
   "profile": {
@@ -98,7 +99,7 @@
       "l": "Avg. annual engagement"
     },
     {
-      "v": "2\u20135yr",
+      "v": "2–5yr",
       "l": "Founder runway to exit"
     },
     {
@@ -133,8 +134,7 @@
     "statsBand": false,
     "testimonials": false,
     "founder": false,
-    "apply": true,
-    "featuredOffer": false
+    "apply": true
   },
   "showFounder": false,
   "accent": "navy"

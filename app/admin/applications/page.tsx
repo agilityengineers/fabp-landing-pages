@@ -1,9 +1,12 @@
-import { listApplications } from "@/lib/forms";
-import { ApplicationsTable } from "@/components/admin/ApplicationsTable";
+import { isAuthenticated } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { FailedSubmissionsTable } from "@/components/admin/FailedSubmissionsTable";
 
 export const dynamic = "force-dynamic";
 
-export default function ApplicationsPage() {
-  const applications = listApplications();
-  return <ApplicationsTable applications={applications} />;
+export default async function ApplicationsPage() {
+  if (!(await isAuthenticated())) {
+    redirect("/admin/login");
+  }
+  return <FailedSubmissionsTable />;
 }

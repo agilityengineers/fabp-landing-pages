@@ -42,8 +42,8 @@ export default function NotFound() {
         We may not have launched this industry yet. Browse the directory or check back soon.
       </p>
       <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
-        <Link href="/cpas" className="btn btn-primary">
-          View CPAs page
+        <Link href="/business-services-professionals" className="btn btn-primary">
+          View Business Services page
         </Link>
         <a
           href="https://www.findabusinesspro.com"

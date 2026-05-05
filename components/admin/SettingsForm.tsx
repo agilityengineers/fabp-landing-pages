@@ -1,41 +1,53 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useCallback, useRef } from "react";
 import type { Base } from "@/config/schema";
 
 interface SettingsFormProps {
-  initial: Base;
+  base: Base;
 }
 
-export function SettingsForm({ initial }: SettingsFormProps) {
+export function SettingsForm({ base: initial }: SettingsFormProps) {
   const [draft, setDraft] = useState<Base>(initial);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [error, setError] = useState("");
+  const saveTimer = useRef<NodeJS.Timeout | null>(null);
 
-  function updateBrand<K extends keyof Base["brand"]>(k: K, v: Base["brand"][K]) {
-    setDraft((d) => ({ ...d, brand: { ...d.brand, [k]: v } }));
+  function updateBrand(key: keyof Base["brand"], value: string) {
+    const next = { ...draft, brand: { ...draft.brand, [key]: value } };
+    setDraft(next);
+    scheduleSave(next);
   }
 
-  function updateFounder<K extends keyof Base["founder"]>(k: K, v: Base["founder"][K]) {
-    setDraft((d) => ({ ...d, founder: { ...d.founder, [k]: v } }));
+  function updateFounder(key: keyof Base["founder"], value: string) {
+    const next = { ...draft, founder: { ...draft.founder, [key]: value } };
+    setDraft(next);
+    scheduleSave(next);
   }
 
-  async function save() {
+  const scheduleSave = useCallback((data: Base) => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => autoSave(data), 800);
+  }, []);
+
+  async function autoSave(data: Base) {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/api/base", {
+      const res = await fetch("/api/admin/base", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
+        body: JSON.stringify(data),
       });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? `Save failed (${res.status})`);
+        const j = await res.json();
+        setError(j.error ?? "Save failed");
+      } else {
+        setSavedAt(new Date());
       }
-      setSavedAt(new Date());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Save failed");
+    } catch {
+      setError("Network error — changes not saved");
     } finally {
       setSaving(false);
     }
@@ -46,33 +58,27 @@ export function SettingsForm({ initial }: SettingsFormProps) {
       <div className="admin-bar">
         <div>
           <h1 className="admin-h1">Brand &amp; Founder</h1>
-          <p className="admin-sub">
-            Brand-wide constants shared across every industry landing page.
-          </p>
+          <p className="admin-sub">Global settings shared across all industry pages.</p>
         </div>
       </div>
 
       {error && (
-        <div className="login-err" style={{ marginBottom: 16 }}>
-          ⚠️ {error}{" "}
-          <button
-            onClick={() => setError("")}
-            style={{
-              marginLeft: 8,
-              textDecoration: "underline",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Dismiss
-          </button>
+        <div style={{
+          background: "oklch(95% 0.06 25)",
+          border: "0.5px solid oklch(80% 0.1 25)",
+          borderRadius: "var(--r-sm)",
+          padding: "10px 14px",
+          color: "oklch(35% 0.15 25)",
+          fontSize: 13.5,
+          marginBottom: 20,
+        }}>
+          {error}
         </div>
       )}
 
-      <div className="admin-card">
+      <div className="admin-card" style={{ marginBottom: 24 }}>
         <div className="form-section">
-          <div className="form-section-h">Brand</div>
+          <p className="form-section-h">Brand</p>
           <div className="field">
             <label>Brand name</label>
             <input
@@ -84,13 +90,13 @@ export function SettingsForm({ initial }: SettingsFormProps) {
             <div className="field">
               <label>Parent URL</label>
               <input
+                type="url"
                 value={draft.brand.parentUrl}
                 onChange={(e) => updateBrand("parentUrl", e.target.value)}
-                placeholder="https://www.findabusinesspro.com"
               />
             </div>
             <div className="field">
-              <label>Phone</label>
+              <label>Phone number</label>
               <input
                 value={draft.brand.phone}
                 onChange={(e) => updateBrand("phone", e.target.value)}
@@ -98,9 +104,11 @@ export function SettingsForm({ initial }: SettingsFormProps) {
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="form-section" style={{ borderBottom: 0 }}>
-          <div className="form-section-h">Founder</div>
+      <div className="admin-card">
+        <div className="form-section">
+          <p className="form-section-h">Founder</p>
           <div className="field-row">
             <div className="field">
               <label>Name</label>
@@ -117,17 +125,9 @@ export function SettingsForm({ initial }: SettingsFormProps) {
               />
             </div>
           </div>
-          <div className="field">
-            <label>Bio</label>
-            <textarea
-              value={draft.founder.bio}
-              onChange={(e) => updateFounder("bio", e.target.value)}
-              style={{ minHeight: 120 }}
-            />
-          </div>
           <div className="field-row">
             <div className="field">
-              <label>Book line</label>
+              <label>Book / byline</label>
               <input
                 value={draft.founder.book}
                 onChange={(e) => updateFounder("book", e.target.value)}
@@ -139,39 +139,36 @@ export function SettingsForm({ initial }: SettingsFormProps) {
                 value={draft.founder.photoLabel}
                 onChange={(e) => updateFounder("photoLabel", e.target.value)}
               />
+              <span className="field-hint">e.g. FOUNDER · CHARLOTTE, NC</span>
             </div>
           </div>
-        </div>
-
-        <div className="save-bar">
-          <div className="save-bar-left">
-            <span style={{ color: saving ? "var(--ink-400)" : "var(--green-700)" }}>●</span>
-            {saving
-              ? "Saving…"
-              : savedAt
-              ? `Saved · ${formatRelative(savedAt)}`
-              : "Unsaved changes"}
-          </div>
-          <div className="save-bar-right">
-            <button
-              type="button"
-              className="ind-action primary"
-              onClick={save}
-              disabled={saving}
-            >
-              Save changes
-            </button>
+          <div className="field">
+            <label>Bio</label>
+            <textarea
+              style={{ minHeight: 120 }}
+              value={draft.founder.bio}
+              onChange={(e) => updateFounder("bio", e.target.value)}
+            />
           </div>
         </div>
       </div>
+
+      <div className="save-bar" style={{ marginTop: 0 }}>
+        <div className="save-bar-left">
+          {saving && <span>Saving…</span>}
+          {!saving && savedAt && (
+            <span>Saved at {savedAt.toLocaleTimeString()}</span>
+          )}
+          {!saving && !savedAt && <span>Changes auto-save</span>}
+        </div>
+        <button
+          className="gen-cta"
+          disabled={saving}
+          onClick={() => autoSave(draft)}
+        >
+          {saving ? "Saving…" : "Save now"}
+        </button>
+      </div>
     </div>
   );
-}
-
-function formatRelative(date: Date): string {
-  const diff = Date.now() - date.getTime();
-  const secs = Math.floor(diff / 1000);
-  if (secs < 5) return "just now";
-  if (secs < 60) return `${secs}s ago`;
-  return `${Math.floor(secs / 60)}m ago`;
 }

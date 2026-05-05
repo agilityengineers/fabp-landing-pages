@@ -1,22 +1,23 @@
 {
   "slug": "ma-advisors",
+  "professionId": 2,
   "industry": "M&A Advisors",
   "industryShort": "M&A Advisor",
   "industryPlural": "M&A Advisors",
   "published": true,
   "lastEdited": "2025-05-04T00:00:00.000Z",
   "seo": {
-    "title": "An Invitation for M&A Advisors \u2014 Find a Business Pro",
+    "title": "An Invitation for M&A Advisors — Find a Business Pro",
     "description": "A category-exclusive listing inside the directory founders search when the next conversation is the most important one."
   },
   "hero": {
-    "eyebrow": "An Invitation \u2014 for M&A Advisors",
+    "eyebrow": "An Invitation — for M&A Advisors",
     "headline": "Be the advisor founders find <em>before the LOI lands</em>.",
     "subhead": "A category-exclusive listing inside the directory founders search when the next conversation is the most important one.",
     "primaryCta": "Book a 15-min intro call",
     "secondaryCta": "Provider Playbook",
     "heroImage": "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&q=80&auto=format&fit=crop",
-    "heroPhotoLabel": "M&A ADVISOR \u00b7 DALLAS, TX"
+    "heroPhotoLabel": "M&A ADVISOR · DALLAS, TX"
   },
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
@@ -40,7 +41,7 @@
     ]
   },
   "promise": {
-    "headline": "Where founders look at the earliest exit signals \u2014 and find the right advisor first.",
+    "headline": "Where founders look at the earliest exit signals — and find the right advisor first.",
     "stats": [
       {
         "v": "$180k+",
@@ -70,12 +71,12 @@
     {
       "time": "Step 03",
       "title": "Get listed & matched",
-      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you \u2014 not a queue."
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
     }
   ],
   "profile": {
     "name": "R. Donovan",
-    "role": "M&A Advisor \u2014 Lower Mid-Market",
+    "role": "M&A Advisor — Lower Mid-Market",
     "city": "Dallas, TX",
     "stats": [
       {
@@ -98,7 +99,7 @@
       "l": "Avg. retainer floor"
     },
     {
-      "v": "6\u201318mo",
+      "v": "6–18mo",
       "l": "Founder research window"
     },
     {
@@ -133,8 +134,7 @@
     "statsBand": false,
     "testimonials": false,
     "founder": false,
-    "apply": true,
-    "featuredOffer": false
+    "apply": true
   },
   "showFounder": false,
   "accent": "navy"

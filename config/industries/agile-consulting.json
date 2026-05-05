@@ -1,22 +1,23 @@
 {
   "slug": "agile-consulting",
+  "professionId": 25,
   "industry": "Agile Consultants",
   "industryShort": "Agile Consultant",
   "industryPlural": "Agile Consultants",
   "published": false,
   "lastEdited": "2025-05-04T00:00:00.000Z",
   "seo": {
-    "title": "An Invitation for Agile Consultants \u2014 Find a Business Pro",
+    "title": "An Invitation for Agile Consultants — Find a Business Pro",
     "description": "A category-exclusive listing in the directory leaders search when transformation has stopped meaning ceremony and started meaning outcomes."
   },
   "hero": {
-    "eyebrow": "An Invitation \u2014 for Agile Consultants",
+    "eyebrow": "An Invitation — for Agile Consultants",
     "headline": "Be matched to teams ready to <em>actually change</em>.",
     "subhead": "A category-exclusive listing in the directory leaders search when transformation has stopped meaning ceremony and started meaning outcomes.",
     "primaryCta": "Book a 15-min intro call",
     "secondaryCta": "Provider Playbook",
     "heroImage": "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80&auto=format&fit=crop",
-    "heroPhotoLabel": "AGILE CONSULTANT \u00b7 SEATTLE, WA"
+    "heroPhotoLabel": "AGILE CONSULTANT · SEATTLE, WA"
   },
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
@@ -40,7 +41,7 @@
     ]
   },
   "promise": {
-    "headline": "Where leaders look when ceremony has run its course \u2014 and outcomes are the only metric.",
+    "headline": "Where leaders look when ceremony has run its course — and outcomes are the only metric.",
     "stats": [
       {
         "v": "$36k",
@@ -70,7 +71,7 @@
     {
       "time": "Step 03",
       "title": "Get listed & matched",
-      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you \u2014 not a queue."
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
     }
   ],
   "profile": {
@@ -117,7 +118,7 @@
     },
     {
       "q": "How is this different from Toptal Enterprise?",
-      "a": "We curate, position, and amplify \u2014 not auction."
+      "a": "We curate, position, and amplify — not auction."
     },
     {
       "q": "What happens after I apply?",
@@ -133,8 +134,7 @@
     "statsBand": false,
     "testimonials": false,
     "founder": false,
-    "apply": true,
-    "featuredOffer": false
+    "apply": true
   },
   "showFounder": false,
   "accent": "navy"

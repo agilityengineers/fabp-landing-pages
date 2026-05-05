@@ -1,5 +1,5 @@
 "use client";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { Industry } from "@/config/schema";
 import { ToggleSwitch } from "./ToggleSwitch";
@@ -12,8 +12,6 @@ interface EditFormProps {
 
 type Sections = Industry["sections"];
 
-const PREVIEW_PREF_KEY = "fabp:preview-open";
-
 export function EditForm({ industry: initial, isGenerated = false }: EditFormProps) {
   const router = useRouter();
   const [draft, setDraft] = useState<Industry>(initial);
@@ -23,65 +21,14 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
   const [regenLoading, setRegenLoading] = useState<string | null>(null);
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewStale, setPreviewStale] = useState(false);
-  const previewIframeRef = useRef<HTMLIFrameElement | null>(null);
-  const previewReadyRef = useRef(false);
-  const previewTimer = useRef<NodeJS.Timeout | null>(null);
-  const draftRef = useRef<Industry>(initial);
-  draftRef.current = draft;
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.localStorage.getItem(PREVIEW_PREF_KEY) === "1") {
-      setPreviewOpen(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(PREVIEW_PREF_KEY, previewOpen ? "1" : "0");
-  }, [previewOpen]);
-
-  useEffect(() => {
-    function onMessage(e: MessageEvent) {
-      if (!e.data || e.data.type !== "fabp:preview-ready") return;
-      if (e.source !== previewIframeRef.current?.contentWindow) return;
-      previewReadyRef.current = true;
-      postDraftToPreview(draftRef.current);
-      setPreviewStale(false);
-    }
-    window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
-  }, []);
-
-  function postDraftToPreview(data: Industry) {
-    const win = previewIframeRef.current?.contentWindow;
-    if (!win || !previewReadyRef.current) return;
-    win.postMessage({ type: "fabp:preview", cfg: data }, "*");
-  }
-
-  function schedulePreview(data: Industry) {
-    setPreviewStale(true);
-    if (previewTimer.current) clearTimeout(previewTimer.current);
-    previewTimer.current = setTimeout(() => {
-      postDraftToPreview(data);
-      setPreviewStale(false);
-    }, 250);
-  }
-
   function update<K extends keyof Industry>(k: K, v: Industry[K]) {
-    const next = { ...draft, [k]: v };
-    setDraft(next);
-    scheduleSave(next);
-    schedulePreview(next);
+    setDraft((d) => ({ ...d, [k]: v }));
+    scheduleSave({ ...draft, [k]: v });
   }
 
   function updateNested<K extends keyof Industry>(k: K, subk: string, v: unknown) {
-    const next = { ...draft, [k]: { ...(draft[k] as object), [subk]: v } } as Industry;
-    setDraft(next);
-    scheduleSave(next);
-    schedulePreview(next);
+    setDraft((d) => ({ ...d, [k]: { ...(d[k] as object), [subk]: v } }));
+    scheduleSave({ ...draft, [k]: { ...(draft[k] as object), [subk]: v } });
   }
 
   function updateVillain(i: number, field: "t" | "b", v: string) {
@@ -102,57 +49,8 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
     update("faq", faq);
   }
 
-  function moveFaq(i: number, dir: -1 | 1) {
-    const j = i + dir;
-    if (j < 0 || j >= draft.faq.length) return;
-    const faq = [...draft.faq];
-    [faq[i], faq[j]] = [faq[j], faq[i]];
-    update("faq", faq);
-  }
-
-  function addFaq() {
-    if (draft.faq.length >= 6) return;
-    update("faq", [...draft.faq, { q: "", a: "" }]);
-  }
-
-  function removeFaq(i: number) {
-    if (draft.faq.length <= 4) return;
-    const faq = draft.faq.filter((_, idx) => idx !== i);
-    update("faq", faq);
-  }
-
   function updateSection(k: keyof Sections, v: boolean) {
-    if (k === "featuredOffer" && v && !draft.featuredOffer) {
-      const next = {
-        ...draft,
-        sections: { ...draft.sections, featuredOffer: true },
-        featuredOffer: {
-          eyebrow: "Free upgrade",
-          headline: "List free. Earn <em>Featured</em> by completing the Brand Voice Interview.",
-          body: "Every pro lists at no cost. Complete the Brand Voice Interview — the same process from Marketing Mayhem — and your listing is upgraded to Featured. No payment. No catch.",
-          primaryCta: "List free in 60 seconds",
-          secondaryCta: "Apply for the Featured seat",
-        },
-      } as Industry;
-      setDraft(next);
-      scheduleSave(next);
-      schedulePreview(next);
-      return;
-    }
     update("sections", { ...draft.sections, [k]: v });
-  }
-
-  function updateFeaturedOffer(field: string, v: string) {
-    const current = draft.featuredOffer ?? {
-      eyebrow: "",
-      headline: "",
-      body: "",
-      primaryCta: "",
-      secondaryCta: "",
-    };
-    const isUrlField = field === "basicSignupUrl" || field === "brandVoiceInterviewUrl";
-    const nextValue = isUrlField && v.trim() === "" ? undefined : v;
-    update("featuredOffer", { ...current, [field]: nextValue });
   }
 
   const scheduleSave = useCallback(
@@ -211,10 +109,8 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
       });
       if (!res.ok) throw new Error("Regeneration failed");
       const updated = await res.json();
-      const next = { ...draftRef.current, [section]: updated[section] } as Industry;
-      setDraft(next);
+      setDraft((d) => ({ ...d, [section]: updated[section] }));
       setSavedAt(new Date());
-      schedulePreview(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Regen failed");
     } finally {
@@ -229,7 +125,7 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
     : "Unsaved changes";
 
   return (
-    <div className={previewOpen ? "admin-main edit-with-preview" : "admin-main"}>
+    <div className="admin-main">
       <div className="admin-bar">
         <div>
           <a href="/admin" className="ind-action" style={{ marginBottom: 10, display: "inline-flex" }}>
@@ -271,8 +167,6 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
         </div>
       )}
 
-      <div className="edit-split">
-      <div className="edit-form-pane">
       <div className="admin-card">
         {/* Identifiers */}
         <div className="form-section">
@@ -290,6 +184,63 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
               <input value={draft.slug} disabled style={{ opacity: 0.6 }} />
             </div>
           </div>
+          <div className="field-row">
+            <div className="field">
+              <label>Short name (e.g. &ldquo;Attorney&rdquo;)</label>
+              <input
+                value={draft.industryShort}
+                onChange={(e) => update("industryShort", e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Plural name (optional)</label>
+              <input
+                value={draft.industryPlural ?? ""}
+                onChange={(e) => update("industryPlural", e.target.value || undefined)}
+                placeholder="e.g. Business Attorneys"
+              />
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field">
+              <label>BD Profession ID</label>
+              <input
+                type="number"
+                min={1}
+                value={draft.professionId}
+                onChange={(e) => update("professionId", parseInt(e.target.value, 10) || 0)}
+              />
+              <div className="field-hint">Maps to profession_id in the BD system</div>
+            </div>
+          </div>
+        </div>
+
+        {/* SEO */}
+        <div className="form-section">
+          <div className="form-section-h">SEO</div>
+          <div className="field">
+            <label>Page title</label>
+            <input
+              value={draft.seo.title}
+              onChange={(e) => updateNested("seo", "title", e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label>Meta description (optional)</label>
+            <textarea
+              value={draft.seo.description ?? ""}
+              onChange={(e) => updateNested("seo", "description", e.target.value || undefined)}
+              style={{ minHeight: 60 }}
+            />
+          </div>
+          <div className="field">
+            <label>OG image URL (optional)</label>
+            <input
+              value={draft.seo.ogImage ?? ""}
+              onChange={(e) => updateNested("seo", "ogImage", e.target.value || undefined)}
+              placeholder="https://..."
+            />
+          </div>
         </div>
 
         {/* Hero */}
@@ -297,6 +248,14 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
           <div className="form-section-h">
             Hero
             <RegenButton section="hero" loading={regenLoading === "hero"} onRegen={regenerateSection} />
+          </div>
+          <div className="field">
+            <label>Eyebrow text</label>
+            <input
+              value={draft.hero.eyebrow}
+              onChange={(e) => updateNested("hero", "eyebrow", e.target.value)}
+              placeholder="An Invitation — for Business Attorneys"
+            />
           </div>
           <div className="field">
             <label>Headline (use &lt;em&gt; for italic phrase)</label>
@@ -328,34 +287,52 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
               />
             </div>
           </div>
-          <div className="field">
-            <label>Hero image URL (Unsplash or other)</label>
-            <input
-              value={draft.hero.heroImage ?? ""}
-              onChange={(e) => updateNested("hero", "heroImage", e.target.value)}
-              placeholder="https://images.unsplash.com/..."
-            />
+          <div className="field-row">
+            <div className="field">
+              <label>Hero photo label</label>
+              <input
+                value={draft.hero.heroPhotoLabel}
+                onChange={(e) => updateNested("hero", "heroPhotoLabel", e.target.value)}
+                placeholder="ATTORNEY · ATLANTA, GA"
+              />
+            </div>
+            <div className="field">
+              <label>Hero image URL (Unsplash or other)</label>
+              <input
+                value={draft.hero.heroImage ?? ""}
+                onChange={(e) => updateNested("hero", "heroImage", e.target.value)}
+                placeholder="https://images.unsplash.com/..."
+              />
+            </div>
           </div>
         </div>
 
         {/* Problem / Villains */}
         <div className="form-section">
           <div className="form-section-h">
-            Villains (4)
+            Problem &amp; Villains
             <RegenButton section="problem" loading={regenLoading === "problem"} onRegen={regenerateSection} />
+          </div>
+          <div className="field">
+            <label>Problem headline</label>
+            <input
+              value={draft.problem.headline}
+              onChange={(e) => updateNested("problem", "headline", e.target.value)}
+            />
           </div>
           {draft.problem.villains.map((v, i) => (
             <div key={i} className="villain-edit">
               <div className="villain-edit-num">{String(i + 1).padStart(2, "0")}</div>
               <div>
                 <div className="field" style={{ marginBottom: 8 }}>
-                  <input value={v.t} onChange={(e) => updateVillain(i, "t", e.target.value)} />
+                  <input value={v.t} onChange={(e) => updateVillain(i, "t", e.target.value)} placeholder="Title" />
                 </div>
                 <div className="field" style={{ marginBottom: 0 }}>
                   <textarea
                     value={v.b}
                     onChange={(e) => updateVillain(i, "b", e.target.value)}
                     style={{ minHeight: 50 }}
+                    placeholder="Body"
                   />
                 </div>
               </div>
@@ -392,6 +369,56 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
           </div>
         </div>
 
+        {/* Plan */}
+        <div className="form-section">
+          <div className="form-section-h">
+            Plan (3 steps)
+            <RegenButton section="plan" loading={regenLoading === "plan"} onRegen={regenerateSection} />
+          </div>
+          {draft.plan.map((step, i) => (
+            <div key={i} className="villain-edit">
+              <div className="villain-edit-num">{step.time || `Step 0${i + 1}`}</div>
+              <div style={{ flex: 1 }}>
+                <div className="field" style={{ marginBottom: 8 }}>
+                  <label>Step label</label>
+                  <input
+                    value={step.time}
+                    onChange={(e) => {
+                      const plan = [...draft.plan];
+                      plan[i] = { ...plan[i], time: e.target.value };
+                      update("plan", plan);
+                    }}
+                    placeholder="Step 01"
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 8 }}>
+                  <label>Title</label>
+                  <input
+                    value={step.title}
+                    onChange={(e) => {
+                      const plan = [...draft.plan];
+                      plan[i] = { ...plan[i], title: e.target.value };
+                      update("plan", plan);
+                    }}
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label>Body</label>
+                  <textarea
+                    value={step.body}
+                    onChange={(e) => {
+                      const plan = [...draft.plan];
+                      plan[i] = { ...plan[i], body: e.target.value };
+                      update("plan", plan);
+                    }}
+                    style={{ minHeight: 60 }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {/* Sample profile */}
         <div className="form-section">
           <div className="form-section-h">
@@ -421,6 +448,147 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
               onChange={(e) => updateNested("profile", "city", e.target.value)}
             />
           </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 12 }}>
+            {draft.profile.stats.map((s, i) => (
+              <div key={i}>
+                <div className="field" style={{ marginBottom: 6 }}>
+                  <label>Profile stat {i + 1} value</label>
+                  <input
+                    value={s.v}
+                    onChange={(e) => {
+                      const stats = [...draft.profile.stats];
+                      stats[i] = { ...stats[i], v: e.target.value };
+                      update("profile", { ...draft.profile, stats });
+                    }}
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label>Profile stat {i + 1} label</label>
+                  <input
+                    value={s.l}
+                    onChange={(e) => {
+                      const stats = [...draft.profile.stats];
+                      stats[i] = { ...stats[i], l: e.target.value };
+                      update("profile", { ...draft.profile, stats });
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats band */}
+        <div className="form-section">
+          <div className="form-section-h">Stats band (optional)</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            {(draft.statsBand ?? [{v:"",l:""},{v:"",l:""},{v:"",l:""}]).map((s, i) => (
+              <div key={i}>
+                <div className="field" style={{ marginBottom: 6 }}>
+                  <label>Band stat {i + 1} value</label>
+                  <input
+                    value={s.v}
+                    onChange={(e) => {
+                      const band = [...(draft.statsBand ?? [{v:"",l:""},{v:"",l:""},{v:"",l:""}])];
+                      band[i] = { ...band[i], v: e.target.value };
+                      update("statsBand", band);
+                    }}
+                  />
+                </div>
+                <div className="field" style={{ marginBottom: 0 }}>
+                  <label>Band stat {i + 1} label</label>
+                  <input
+                    value={s.l}
+                    onChange={(e) => {
+                      const band = [...(draft.statsBand ?? [{v:"",l:""},{v:"",l:""},{v:"",l:""}])];
+                      band[i] = { ...band[i], l: e.target.value };
+                      update("statsBand", band);
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Testimonials */}
+        <div className="form-section">
+          <div className="form-section-h">Testimonials ({draft.testimonials.length})</div>
+          {draft.testimonials.map((t, i) => (
+            <div key={i} className="villain-edit" style={{ alignItems: "flex-start" }}>
+              <div className="villain-edit-num">{String(i + 1).padStart(2, "0")}</div>
+              <div style={{ flex: 1 }}>
+                <div className="field" style={{ marginBottom: 8 }}>
+                  <label>Quote</label>
+                  <textarea
+                    value={t.quote}
+                    onChange={(e) => {
+                      const arr = [...draft.testimonials];
+                      arr[i] = { ...arr[i], quote: e.target.value };
+                      update("testimonials", arr);
+                    }}
+                    style={{ minHeight: 60 }}
+                  />
+                </div>
+                <div className="field-row">
+                  <div className="field" style={{ marginBottom: 0 }}>
+                    <label>Name</label>
+                    <input
+                      value={t.name}
+                      onChange={(e) => {
+                        const arr = [...draft.testimonials];
+                        arr[i] = { ...arr[i], name: e.target.value };
+                        update("testimonials", arr);
+                      }}
+                    />
+                  </div>
+                  <div className="field" style={{ marginBottom: 0 }}>
+                    <label>Role</label>
+                    <input
+                      value={t.role}
+                      onChange={(e) => {
+                        const arr = [...draft.testimonials];
+                        arr[i] = { ...arr[i], role: e.target.value };
+                        update("testimonials", arr);
+                      }}
+                    />
+                  </div>
+                  <div className="field" style={{ marginBottom: 0 }}>
+                    <label>Company (optional)</label>
+                    <input
+                      value={t.company ?? ""}
+                      onChange={(e) => {
+                        const arr = [...draft.testimonials];
+                        arr[i] = { ...arr[i], company: e.target.value || undefined };
+                        update("testimonials", arr);
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const arr = draft.testimonials.filter((_, j) => j !== i);
+                  update("testimonials", arr);
+                }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", fontSize: 18, padding: "0 4px", marginLeft: 8 }}
+                title="Remove"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="ind-action"
+            style={{ marginTop: 8 }}
+            onClick={() => {
+              update("testimonials", [...draft.testimonials, { quote: "", name: "", role: "", company: undefined }]);
+            }}
+          >
+            + Add testimonial
+          </button>
         </div>
 
         {/* FAQ */}
@@ -430,9 +598,9 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
             <RegenButton section="faq" loading={regenLoading === "faq"} onRegen={regenerateSection} />
           </div>
           {draft.faq.map((f, i) => (
-            <div key={i} className="villain-edit" style={{ alignItems: "start" }}>
+            <div key={i} className="villain-edit">
               <div className="villain-edit-num">{String(i + 1).padStart(2, "0")}</div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div className="field" style={{ marginBottom: 8 }}>
                   <input
                     value={f.q}
@@ -449,114 +617,32 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
                   />
                 </div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 4, marginLeft: 8 }}>
+              {draft.faq.length > 4 && (
                 <button
                   type="button"
-                  className="ind-action"
-                  onClick={() => moveFaq(i, -1)}
-                  disabled={i === 0}
-                  aria-label="Move up"
-                  title="Move up"
-                  style={{ padding: "4px 8px" }}
+                  onClick={() => {
+                    const arr = draft.faq.filter((_, j) => j !== i);
+                    update("faq", arr);
+                  }}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-400)", fontSize: 18, padding: "0 4px", marginLeft: 8 }}
+                  title="Remove"
                 >
-                  ↑
+                  ×
                 </button>
-                <button
-                  type="button"
-                  className="ind-action"
-                  onClick={() => moveFaq(i, 1)}
-                  disabled={i === draft.faq.length - 1}
-                  aria-label="Move down"
-                  title="Move down"
-                  style={{ padding: "4px 8px" }}
-                >
-                  ↓
-                </button>
-                <button
-                  type="button"
-                  className="ind-action"
-                  onClick={() => removeFaq(i)}
-                  disabled={draft.faq.length <= 4}
-                  aria-label="Remove"
-                  title={draft.faq.length <= 4 ? "Minimum 4 FAQ items" : "Remove"}
-                  style={{ padding: "4px 8px" }}
-                >
-                  ✕
-                </button>
-              </div>
+              )}
             </div>
           ))}
-          <button
-            type="button"
-            className="ind-action"
-            onClick={addFaq}
-            disabled={draft.faq.length >= 6}
-            style={{ marginTop: 8 }}
-          >
-            {draft.faq.length >= 6 ? "Maximum 6 FAQ items" : "+ Add question"}
-          </button>
+          {draft.faq.length < 6 && (
+            <button
+              type="button"
+              className="ind-action"
+              style={{ marginTop: 8 }}
+              onClick={() => update("faq", [...draft.faq, { q: "", a: "" }])}
+            >
+              + Add FAQ item
+            </button>
+          )}
         </div>
-
-        {/* Featured offer content (BVI) */}
-        {draft.sections.featuredOffer && (
-          <div className="form-section">
-            <div className="form-section-h">Featured offer (Brand Voice Interview)</div>
-            <div className="field">
-              <label>Eyebrow</label>
-              <input
-                value={draft.featuredOffer?.eyebrow ?? ""}
-                onChange={(e) => updateFeaturedOffer("eyebrow", e.target.value)}
-                placeholder="Free upgrade"
-              />
-            </div>
-            <div className="field">
-              <label>Headline (use &lt;em&gt; for italic phrase)</label>
-              <input
-                value={draft.featuredOffer?.headline ?? ""}
-                onChange={(e) => updateFeaturedOffer("headline", e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label>Body</label>
-              <textarea
-                value={draft.featuredOffer?.body ?? ""}
-                onChange={(e) => updateFeaturedOffer("body", e.target.value)}
-              />
-            </div>
-            <div className="field-row">
-              <div className="field">
-                <label>Primary CTA (links to basic signup)</label>
-                <input
-                  value={draft.featuredOffer?.primaryCta ?? ""}
-                  onChange={(e) => updateFeaturedOffer("primaryCta", e.target.value)}
-                />
-              </div>
-              <div className="field">
-                <label>Secondary CTA (scrolls to Apply)</label>
-                <input
-                  value={draft.featuredOffer?.secondaryCta ?? ""}
-                  onChange={(e) => updateFeaturedOffer("secondaryCta", e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="field">
-              <label>Basic signup URL (override — leave blank to use base.json default)</label>
-              <input
-                value={draft.featuredOffer?.basicSignupUrl ?? ""}
-                onChange={(e) => updateFeaturedOffer("basicSignupUrl", e.target.value)}
-                placeholder="https://www.findabusinesspro.com/signup?plan=basic"
-              />
-            </div>
-            <div className="field">
-              <label>Brand Voice Interview URL (override — leave blank to use base.json default)</label>
-              <input
-                value={draft.featuredOffer?.brandVoiceInterviewUrl ?? ""}
-                onChange={(e) => updateFeaturedOffer("brandVoiceInterviewUrl", e.target.value)}
-                placeholder="https://brand-voice-interview.com/?ref=fabp"
-              />
-            </div>
-          </div>
-        )}
 
         {/* Section toggles */}
         <div className="form-section">
@@ -571,7 +657,6 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
               ["testimonials", "Testimonials (hides if empty)"],
               ["apply", "Apply + FAQ"],
               ["founder", "Show founder block"],
-              ["featuredOffer", "Featured offer + BVI CTAs"],
             ] as [keyof Sections, string][]
           ).map(([k, label]) => (
             <ToggleSwitch
@@ -581,6 +666,11 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
               onChange={(v) => updateSection(k, v)}
             />
           ))}
+          <ToggleSwitch
+            label="Show founder bio block"
+            checked={draft.showFounder}
+            onChange={(v) => update("showFounder", v)}
+          />
         </div>
 
         {/* Accent */}
@@ -599,16 +689,8 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
             {saveStatus}
           </div>
           <div className="save-bar-right">
-            <button
-              type="button"
-              className={previewOpen ? "ind-action primary-soft" : "ind-action"}
-              onClick={() => setPreviewOpen((v) => !v)}
-              aria-pressed={previewOpen}
-            >
-              {previewOpen ? "Hide preview" : "Show preview"}
-            </button>
             <a href={`/${draft.slug}`} className="ind-action" target="_blank" rel="noopener">
-              Open in tab ↗
+              Preview
             </a>
             <button
               type="button"
@@ -628,40 +710,6 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
             </button>
           </div>
         </div>
-      </div>
-      </div>
-      {previewOpen && (
-        <div className="edit-preview-pane">
-          <div className="preview-toolbar">
-            <div className="preview-toolbar-left">
-              <span className={`preview-dot ${previewStale ? "stale" : "live"}`} aria-hidden />
-              <span>{previewStale ? "Updating…" : "Live preview"}</span>
-            </div>
-            <div className="preview-toolbar-right">
-              <a href={`/${draft.slug}`} target="_blank" rel="noopener" className="preview-toolbar-link">
-                Open ↗
-              </a>
-              <button
-                type="button"
-                className="preview-toolbar-close"
-                onClick={() => setPreviewOpen(false)}
-                aria-label="Close preview"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-          <iframe
-            ref={previewIframeRef}
-            src={`/preview/${draft.slug}`}
-            className="preview-iframe"
-            title="Live preview"
-            onLoad={() => {
-              previewReadyRef.current = false;
-            }}
-          />
-        </div>
-      )}
       </div>
     </div>
   );

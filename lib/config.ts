@@ -54,3 +54,7 @@ export function deleteIndustry(slug: string): void {
   const file = path.join(INDUSTRIES_DIR, `${slug}.json`);
   if (fs.existsSync(file)) fs.unlinkSync(file);
 }
+
+export function saveBase(data: Base): void {
+  fs.writeFileSync(BASE_FILE, JSON.stringify(data, null, 2), "utf-8");
+}

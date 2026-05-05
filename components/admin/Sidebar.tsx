@@ -1,33 +1,32 @@
 "use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export function Sidebar() {
-  const pathname = usePathname() ?? "";
+  const pathname = usePathname();
+  const router = useRouter();
 
-  const isActive = (href: string) => {
-    if (pathname === href) return true;
-    if (href === "/admin") {
-      // Industries section also covers /admin/new and /admin/[slug],
-      // but not /admin/applications or /admin/settings.
-      if (pathname.startsWith("/admin/applications")) return false;
-      if (pathname.startsWith("/admin/settings")) return false;
-      return pathname.startsWith("/admin/");
-    }
-    return pathname.startsWith(`${href}/`);
-  };
+  function isActive(href: string) {
+    if (href === "/admin") return pathname === "/admin";
+    return pathname.startsWith(href);
+  }
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/admin/login");
+  }
 
   return (
     <aside className="admin-side">
       <div className="admin-logo">
         <Image
-          src="/New-White-Logo-2026.png"
+          src="/New-White-Logo-2026_1777935147444.png"
           alt="Find a Business Pro"
-          width={880}
-          height={440}
-          className="admin-logo-img"
-          sizes="180px"
+          width={320}
+          height={90}
+          className="admin-logo-image"
           priority
         />
       </div>
@@ -35,22 +34,46 @@ export function Sidebar() {
         <Link href="/admin" className={isActive("/admin") ? "active" : ""}>
           📋 Industries
         </Link>
-        <Link
-          href="/admin/applications"
-          className={isActive("/admin/applications") ? "active" : ""}
-        >
+        <Link href="/admin/applications" className={isActive("/admin/applications") ? "active" : ""}>
           📊 Applications
         </Link>
-        <Link
-          href="/admin/settings"
-          className={isActive("/admin/settings") ? "active" : ""}
-        >
+        <Link href="/admin/settings" className={isActive("/admin/settings") ? "active" : ""}>
           ⚙️ Brand & Founder
         </Link>
       </nav>
       <div style={{ flex: 1 }} />
       <div className="admin-side-foot">
-        v1.0 · Find a Business Pro
+        <span>v1.0 · Find a Business Pro</span>
+        <button
+          onClick={handleLogout}
+          style={{
+            display: "block",
+            marginTop: 10,
+            width: "100%",
+            padding: "7px 10px",
+            background: "rgba(255,255,255,0.06)",
+            border: "0.5px solid rgba(255,255,255,0.12)",
+            borderRadius: 6,
+            color: "rgba(255,255,255,0.55)",
+            fontFamily: "var(--mono)",
+            fontSize: 9.5,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            cursor: "pointer",
+            textAlign: "left",
+            transition: "background .15s, color .15s",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)";
+            (e.currentTarget as HTMLButtonElement).style.color = "#fff";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";
+            (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.55)";
+          }}
+        >
+          Sign out →
+        </button>
       </div>
     </aside>
   );
