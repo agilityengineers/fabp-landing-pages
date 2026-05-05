@@ -31,6 +31,7 @@ export function Nav({ cfg, base }: NavProps) {
             width={204}
             height={102}
             className="brand-logo"
+            sizes="(max-width: 700px) 152px, 204px"
             priority
           />
         </a>
