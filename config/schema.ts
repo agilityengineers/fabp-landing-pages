@@ -69,7 +69,20 @@ export const industrySchema = z.object({
     testimonials: z.boolean(),
     founder: z.boolean(),
     apply: z.boolean(),
+    featuredOffer: z.boolean().default(false),
   }),
+
+  featuredOffer: z
+    .object({
+      eyebrow: z.string(),
+      headline: z.string(),
+      body: z.string(),
+      primaryCta: z.string(),
+      secondaryCta: z.string(),
+      basicSignupUrl: z.string().url().optional(),
+      brandVoiceInterviewUrl: z.string().url().optional(),
+    })
+    .optional(),
 
   showFounder: z.boolean().default(false),
   accent: z.enum(["navy", "midnight", "ink", "forest"]).default("navy"),
@@ -88,6 +101,17 @@ export const baseSchema = z.object({
     book: z.string(),
     photoLabel: z.string(),
   }),
+  links: z
+    .object({
+      bdBasicSignupUrl: z.string().url(),
+      bdFeaturedSignupUrl: z.string().url(),
+      brandVoiceInterviewUrl: z.string().url(),
+    })
+    .default({
+      bdBasicSignupUrl: "https://www.findabusinesspro.com/signup?plan=basic",
+      bdFeaturedSignupUrl: "https://www.findabusinesspro.com/signup?plan=featured",
+      brandVoiceInterviewUrl: "https://brand-voice-interview.com/?ref=fabp",
+    }),
 });
 
 export type Industry = z.infer<typeof industrySchema>;

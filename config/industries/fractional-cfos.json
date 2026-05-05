@@ -6,60 +6,123 @@
   "published": true,
   "lastEdited": "2025-05-04T00:00:00.000Z",
   "seo": {
-    "title": "An Invitation for Fractional CFOs — Find a Business Pro",
+    "title": "An Invitation for Fractional CFOs \u2014 Find a Business Pro",
     "description": "A category-exclusive listing in the directory founders search when the books, the runway, or the raise demands a real CFO."
   },
   "hero": {
-    "eyebrow": "An Invitation — for Fractional CFOs",
+    "eyebrow": "An Invitation \u2014 for Fractional CFOs",
     "headline": "Be matched to founders who already <em>know they need you</em>.",
     "subhead": "A category-exclusive listing in the directory founders search when the books, the runway, or the raise demands a real CFO.",
     "primaryCta": "Book a 15-min intro call",
     "secondaryCta": "Provider Playbook",
     "heroImage": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&q=80&auto=format&fit=crop",
-    "heroPhotoLabel": "FRACTIONAL CFO · AUSTIN, TX"
+    "heroPhotoLabel": "FRACTIONAL CFO \u00b7 AUSTIN, TX"
   },
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
     "villains": [
-      { "t": "Ad channels built for SaaS, not strategic finance", "b": "Per-click optimization for relationship work." },
-      { "t": "Invisible in a crowded market", "b": "Generalist sites flatten a CFO into a bookkeeper." },
-      { "t": "Per-hour bidding wars", "b": "Auctioning strategic time on transactional platforms." },
-      { "t": "Referrals that evaporate", "b": "Founder-network intros that never close." }
+      {
+        "t": "Ad channels built for SaaS, not strategic finance",
+        "b": "Per-click optimization for relationship work."
+      },
+      {
+        "t": "Invisible in a crowded market",
+        "b": "Generalist sites flatten a CFO into a bookkeeper."
+      },
+      {
+        "t": "Per-hour bidding wars",
+        "b": "Auctioning strategic time on transactional platforms."
+      },
+      {
+        "t": "Referrals that evaporate",
+        "b": "Founder-network intros that never close."
+      }
     ]
   },
   "promise": {
-    "headline": "Where founders look at fundraises, restructures, and pre-exit moments — and find you.",
+    "headline": "Where founders look at fundraises, restructures, and pre-exit moments \u2014 and find you.",
     "stats": [
-      { "v": "$48k", "l": "Avg. annual engagement" },
-      { "v": "1", "l": "Per vertical, per metro" },
-      { "v": "90 days", "l": "To first inbound" }
+      {
+        "v": "$48k",
+        "l": "Avg. annual engagement"
+      },
+      {
+        "v": "1",
+        "l": "Per vertical, per metro"
+      },
+      {
+        "v": "90 days",
+        "l": "To first inbound"
+      }
     ]
   },
   "plan": [
-    { "time": "Step 01", "title": "Apply", "body": "A 5-minute application. We screen for credentials, vertical focus, and market availability." },
-    { "time": "Step 02", "title": "Brand voice interview", "body": "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes." },
-    { "time": "Step 03", "title": "Get listed & matched", "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue." }
+    {
+      "time": "Step 01",
+      "title": "Apply",
+      "body": "A 5-minute application. We screen for credentials, vertical focus, and market availability."
+    },
+    {
+      "time": "Step 02",
+      "title": "Brand voice interview",
+      "body": "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes."
+    },
+    {
+      "time": "Step 03",
+      "title": "Get listed & matched",
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you \u2014 not a queue."
+    }
   ],
   "profile": {
     "name": "A. Okafor, MBA",
-    "role": "Fractional CFO — Series A→C",
+    "role": "Fractional CFO \u2014 Series A\u2192C",
     "city": "Austin, TX",
     "stats": [
-      { "v": "9yr", "l": "CFO experience" },
-      { "v": "$140M", "l": "Capital raised" },
-      { "v": "11", "l": "Active" }
+      {
+        "v": "9yr",
+        "l": "CFO experience"
+      },
+      {
+        "v": "$140M",
+        "l": "Capital raised"
+      },
+      {
+        "v": "11",
+        "l": "Active"
+      }
     ]
   },
   "statsBand": [
-    { "v": "$48k", "l": "Avg. annual engagement" },
-    { "v": "3.2x", "l": "More inbound vs. cold outreach" },
-    { "v": "1 / vertical", "l": "Per vertical, per metro" }
+    {
+      "v": "$48k",
+      "l": "Avg. annual engagement"
+    },
+    {
+      "v": "3.2x",
+      "l": "More inbound vs. cold outreach"
+    },
+    {
+      "v": "1 / vertical",
+      "l": "Per vertical, per metro"
+    }
   ],
   "faq": [
-    { "q": "What does it cost to be listed?", "a": "Listing is free. After applying, we run a Brand Voice Interview to determine fit." },
-    { "q": "What does category exclusivity mean?", "a": "One listed CFO per vertical, per metro." },
-    { "q": "How is this different from Toptal or Paro?", "a": "Those auction your time. We curate considered hires." },
-    { "q": "What happens after I apply?", "a": "A 15-minute intro call, then a Brand Voice Interview." }
+    {
+      "q": "What does it cost to be listed?",
+      "a": "Listing is free. After applying, we run a Brand Voice Interview to determine fit."
+    },
+    {
+      "q": "What does category exclusivity mean?",
+      "a": "One listed CFO per vertical, per metro."
+    },
+    {
+      "q": "How is this different from Toptal or Paro?",
+      "a": "Those auction your time. We curate considered hires."
+    },
+    {
+      "q": "What happens after I apply?",
+      "a": "A 15-minute intro call, then a Brand Voice Interview."
+    }
   ],
   "testimonials": [],
   "sections": {
@@ -70,7 +133,8 @@
     "statsBand": false,
     "testimonials": false,
     "founder": false,
-    "apply": true
+    "apply": true,
+    "featuredOffer": false
   },
   "showFounder": false,
   "accent": "navy"
