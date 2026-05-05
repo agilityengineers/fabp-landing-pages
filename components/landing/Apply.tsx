@@ -163,14 +163,25 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
                 15-minute intro call.
               </p>
               <div className="form-thanks-meta">REF · APP-{ref}</div>
-              <a
-                className="form-thanks-link"
-                href={base.brand.parentUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                While you wait, browse the directory →
-              </a>
+              {cfg.sections.featuredOffer ? (
+                <a
+                  className="form-thanks-link"
+                  href={cfg.featuredOffer?.brandVoiceInterviewUrl ?? base.links.brandVoiceInterviewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Continue to your Brand Voice Interview →
+                </a>
+              ) : (
+                <a
+                  className="form-thanks-link"
+                  href={base.brand.parentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  While you wait, browse the directory →
+                </a>
+              )}
             </div>
           ) : step === 1 ? (
             <form onSubmit={next} className="form-body">

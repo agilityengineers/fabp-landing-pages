@@ -6,6 +6,7 @@ import { Nav } from "@/components/landing/Nav";
 import { Hero } from "@/components/landing/Hero";
 import { ProblemPromise } from "@/components/landing/ProblemPromise";
 import { Plan } from "@/components/landing/Plan";
+import { FeaturedOffer } from "@/components/landing/FeaturedOffer";
 import { StatsBand } from "@/components/landing/StatsBand";
 import { SampleProfile } from "@/components/landing/SampleProfile";
 import { Testimonials } from "@/components/landing/Testimonials";
@@ -41,9 +42,10 @@ export function LivePreview({ initialCfg, base }: Props) {
     <>
       <Nav cfg={cfg} base={base} />
       <main>
-        {sections.hero && <Hero cfg={cfg} />}
+        {sections.hero && <Hero cfg={cfg} base={base} />}
         {sections.problemPromise && <ProblemPromise cfg={cfg} />}
         {sections.plan && <Plan cfg={cfg} />}
+        {sections.featuredOffer && <FeaturedOffer cfg={cfg} base={base} />}
         {sections.statsBand && <StatsBand cfg={cfg} />}
         {sections.sampleProfile && <SampleProfile cfg={cfg} />}
         {sections.testimonials && <Testimonials cfg={cfg} />}

@@ -277,6 +277,29 @@ a { color: inherit; }
   .hero-stage { margin-bottom: 56px; }
 }
 
+/* Featured offer (Brand Voice Interview gate) */
+.featured-offer {
+  padding: 56px 0;
+  background: var(--paper-2);
+  border-top: 1px solid var(--ink-100);
+  border-bottom: 1px solid var(--ink-100);
+}
+.featured-offer h2 {
+  font-family: var(--serif);
+  font-size: clamp(28px, 3.6vw, 44px);
+  margin: 14px 0 16px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  max-width: 720px;
+}
+.featured-offer .lead {
+  color: var(--ink-500);
+  font-size: 17px;
+  max-width: 640px;
+  line-height: 1.6;
+}
+.featured-offer em { color: var(--accent-deep); font-style: italic; }
+
 /* Problem → Promise */
 .problem-promise {
   position: relative; padding: 50px 0 56px;

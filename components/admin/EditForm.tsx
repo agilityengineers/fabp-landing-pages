@@ -122,7 +122,37 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
   }
 
   function updateSection(k: keyof Sections, v: boolean) {
+    if (k === "featuredOffer" && v && !draft.featuredOffer) {
+      const next = {
+        ...draft,
+        sections: { ...draft.sections, featuredOffer: true },
+        featuredOffer: {
+          eyebrow: "Free upgrade",
+          headline: "List free. Earn <em>Featured</em> by completing the Brand Voice Interview.",
+          body: "Every pro lists at no cost. Complete the Brand Voice Interview — the same process from Marketing Mayhem — and your listing is upgraded to Featured. No payment. No catch.",
+          primaryCta: "List free in 60 seconds",
+          secondaryCta: "Apply for the Featured seat",
+        },
+      } as Industry;
+      setDraft(next);
+      scheduleSave(next);
+      schedulePreview(next);
+      return;
+    }
     update("sections", { ...draft.sections, [k]: v });
+  }
+
+  function updateFeaturedOffer(field: string, v: string) {
+    const current = draft.featuredOffer ?? {
+      eyebrow: "",
+      headline: "",
+      body: "",
+      primaryCta: "",
+      secondaryCta: "",
+    };
+    const isUrlField = field === "basicSignupUrl" || field === "brandVoiceInterviewUrl";
+    const nextValue = isUrlField && v.trim() === "" ? undefined : v;
+    update("featuredOffer", { ...current, [field]: nextValue });
   }
 
   const scheduleSave = useCallback(
@@ -467,6 +497,67 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
           </button>
         </div>
 
+        {/* Featured offer content (BVI) */}
+        {draft.sections.featuredOffer && (
+          <div className="form-section">
+            <div className="form-section-h">Featured offer (Brand Voice Interview)</div>
+            <div className="field">
+              <label>Eyebrow</label>
+              <input
+                value={draft.featuredOffer?.eyebrow ?? ""}
+                onChange={(e) => updateFeaturedOffer("eyebrow", e.target.value)}
+                placeholder="Free upgrade"
+              />
+            </div>
+            <div className="field">
+              <label>Headline (use &lt;em&gt; for italic phrase)</label>
+              <input
+                value={draft.featuredOffer?.headline ?? ""}
+                onChange={(e) => updateFeaturedOffer("headline", e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Body</label>
+              <textarea
+                value={draft.featuredOffer?.body ?? ""}
+                onChange={(e) => updateFeaturedOffer("body", e.target.value)}
+              />
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label>Primary CTA (links to basic signup)</label>
+                <input
+                  value={draft.featuredOffer?.primaryCta ?? ""}
+                  onChange={(e) => updateFeaturedOffer("primaryCta", e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label>Secondary CTA (scrolls to Apply)</label>
+                <input
+                  value={draft.featuredOffer?.secondaryCta ?? ""}
+                  onChange={(e) => updateFeaturedOffer("secondaryCta", e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="field">
+              <label>Basic signup URL (override — leave blank to use base.json default)</label>
+              <input
+                value={draft.featuredOffer?.basicSignupUrl ?? ""}
+                onChange={(e) => updateFeaturedOffer("basicSignupUrl", e.target.value)}
+                placeholder="https://www.findabusinesspro.com/signup?plan=basic"
+              />
+            </div>
+            <div className="field">
+              <label>Brand Voice Interview URL (override — leave blank to use base.json default)</label>
+              <input
+                value={draft.featuredOffer?.brandVoiceInterviewUrl ?? ""}
+                onChange={(e) => updateFeaturedOffer("brandVoiceInterviewUrl", e.target.value)}
+                placeholder="https://brand-voice-interview.com/?ref=fabp"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Section toggles */}
         <div className="form-section">
           <div className="form-section-h">Section visibility</div>
@@ -480,6 +571,7 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
               ["testimonials", "Testimonials (hides if empty)"],
               ["apply", "Apply + FAQ"],
               ["founder", "Show founder block"],
+              ["featuredOffer", "Featured offer + BVI CTAs"],
             ] as [keyof Sections, string][]
           ).map(([k, label]) => (
             <ToggleSwitch
