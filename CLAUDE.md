@@ -57,7 +57,7 @@ Originated as a Claude Design handoff (`README.md`, `chats/`, `project/`) — th
 
 - Path alias `@/*` resolves to the repo root (`tsconfig.json`).
 - `app/page.tsx` just `redirect("/cpas")` — there is no marketing homepage; every real page lives under an industry slug.
-- `lib/forms.ts` `submitApplication` currently logs to console. The `TODO(decision)` comments mark the integration points (Resend, HubSpot) that need wiring before launch — leave the TODO markers in place when extending.
+- `lib/forms.ts` `submitApplication` always appends to `data/applications.jsonl`, then `forwardToExternal` posts a Block Kit notification to `SLACK_WEBHOOK_URL` when set. Slack failures are caught and logged — they never fail the request, so leads are not dropped over a third-party outage. Resend/HubSpot remain open integration points if needed later.
 - `next.config.ts` only allowlists `images.unsplash.com` and `www.findabusinesspro.com` for `next/image` — add new remote hosts there.
 
 ## Environment variables
