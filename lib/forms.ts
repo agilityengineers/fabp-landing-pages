@@ -72,9 +72,15 @@ function generateTempPassword(): string {
   return crypto.randomBytes(16).toString("base64url");
 }
 
-// The `password` field below is rendered to new members by BD's welcome email
-// template (via its password merge variable). Do not remove it — visitors do
-// not choose a password on the form, so the email is their only way in.
+// `password` is hashed by BD and stored normally; BD's [*password*] merge tag
+// in email templates intentionally renders the placeholder "(Entered During
+// Signup)" rather than the plaintext value, so the welcome email can't surface
+// it. As a workaround, we also send `temp_password` — a non-`users_data`
+// column, so per BD's API docs it gets stored in `users_meta` and is exposed
+// to email templates as the [*temp_password*] merge variable. The welcome
+// email template references that tag to print the password to the new member.
+// Do not remove either field; the form does not collect a password from the
+// visitor, so the welcome email is the only path the new member has to sign in.
 function buildBdFields(
   data: ApplicationData,
   tempPassword: string,
@@ -83,6 +89,7 @@ function buildBdFields(
   const fields: Record<string, string> = {
     email: data.email,
     password: tempPassword,
+    temp_password: tempPassword,
     subscription_id: BD_SUBSCRIPTION_ID,
     send_email_notifications: "1",
     send_welcome_email: "1",
