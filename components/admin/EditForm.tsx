@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { Industry } from "@/config/schema";
 import { ToggleSwitch } from "./ToggleSwitch";
 import { AccentPicker } from "./AccentPicker";
+import { PlaybookPanel } from "./PlaybookPanel";
 
 interface EditFormProps {
   industry: Industry;
@@ -674,12 +675,17 @@ export function EditForm({ industry: initial, isGenerated = false }: EditFormPro
         </div>
 
         {/* Accent */}
-        <div className="form-section" style={{ borderBottom: 0 }}>
+        <div className="form-section">
           <div className="form-section-h">Accent</div>
           <AccentPicker
             value={draft.accent}
             onChange={(v) => update("accent", v as Industry["accent"])}
           />
+        </div>
+
+        {/* Provider Playbook */}
+        <div style={{ borderBottom: 0 }}>
+          <PlaybookPanel slug={draft.slug} initialPlaybook={draft.playbook} />
         </div>
 
         {/* Save bar */}

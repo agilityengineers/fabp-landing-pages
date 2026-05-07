@@ -37,6 +37,9 @@ export function Sidebar() {
         <Link href="/admin/applications" className={isActive("/admin/applications") ? "active" : ""}>
           📊 Applications
         </Link>
+        <Link href="/admin/leads" className={isActive("/admin/leads") ? "active" : ""}>
+          📘 Playbook leads
+        </Link>
         <Link href="/admin/settings" className={isActive("/admin/settings") ? "active" : ""}>
           ⚙️ Brand & Founder
         </Link>
