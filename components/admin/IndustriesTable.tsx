@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Industry } from "@/config/schema";
-import { HOME_SLUG } from "@/lib/config";
+import { PublishToggle } from "./PublishToggle";
 
 interface IndustriesTableProps {
   industries: Industry[];
@@ -48,35 +48,12 @@ function IndustryRow({ ind }: { ind: Industry }) {
     ? formatRelative(new Date(ind.lastEdited))
     : "—";
 
-  const isHome = ind.slug === HOME_SLUG;
-
   return (
     <div className="ind-row">
       <div>
-        <div className="ind-name">
-          {ind.industry}
-          {isHome && (
-            <span
-              title="This config powers the home page at /"
-              style={{
-                marginLeft: 8,
-                padding: "2px 6px",
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: 0.5,
-                textTransform: "uppercase",
-                background: "var(--ink-900, #0b1220)",
-                color: "white",
-                borderRadius: 4,
-                verticalAlign: "middle",
-              }}
-            >
-              Home
-            </span>
-          )}
-        </div>
+        <div className="ind-name">{ind.industry}</div>
       </div>
-      <div className="ind-slug">{isHome ? "/" : `/${ind.slug}`}</div>
+      <div className="ind-slug">/{ind.slug}</div>
       <div>
         <span className={`ind-status ${ind.published ? "published" : "draft"}`}>
           {ind.published ? "Published" : "Draft"}
@@ -87,24 +64,12 @@ function IndustryRow({ ind }: { ind: Industry }) {
         <Link href={`/admin/${ind.slug}`} className="ind-action">
           Edit
         </Link>
-        <Link href={isHome ? "/" : `/${ind.slug}`} className="ind-action" target="_blank" rel="noopener">
+        <Link href={`/${ind.slug}`} className="ind-action" target="_blank" rel="noopener">
           View
         </Link>
-        {!isHome && <PublishToggle slug={ind.slug} published={ind.published} />}
+        <PublishToggle slug={ind.slug} published={ind.published} />
       </div>
     </div>
-  );
-}
-
-function PublishToggle({ slug, published }: { slug: string; published: boolean }) {
-  return (
-    <form action={`/api/industries`} method="POST">
-      <input type="hidden" name="slug" value={slug} />
-      <input type="hidden" name="action" value={published ? "unpublish" : "publish"} />
-      <button type="submit" className="ind-action">
-        {published ? "Unpublish" : "Publish"}
-      </button>
-    </form>
   );
 }
 

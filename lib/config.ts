@@ -5,14 +5,14 @@ import { industrySchema, baseSchema, type Industry, type Base } from "@/config/s
 const INDUSTRIES_DIR = path.join(process.cwd(), "config", "industries");
 const BASE_FILE = path.join(process.cwd(), "config", "base.json");
 
-// Slug of the industry config that powers the root "/" home page.
-// It is excluded from /[industry] static params and from the sitemap
-// to keep "/" as the canonical URL.
-export const HOME_SLUG = "business-services-professionals";
-
 export function loadBase(): Base {
   const raw = JSON.parse(fs.readFileSync(BASE_FILE, "utf-8"));
   return baseSchema.parse(raw);
+}
+
+export function saveBase(data: Base): void {
+  const validated = baseSchema.parse(data);
+  fs.writeFileSync(BASE_FILE, JSON.stringify(validated, null, 2), "utf-8");
 }
 
 export function loadIndustry(slug: string): Industry {

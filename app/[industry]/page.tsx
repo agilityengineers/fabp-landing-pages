@@ -1,10 +1,11 @@
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { loadIndustry, loadBase, listSlugs, HOME_SLUG } from "@/lib/config";
+import { loadIndustry, loadBase, listSlugs } from "@/lib/config";
 import { Nav } from "@/components/landing/Nav";
 import { Hero } from "@/components/landing/Hero";
 import { ProblemPromise } from "@/components/landing/ProblemPromise";
 import { Plan } from "@/components/landing/Plan";
+import { FeaturedOffer } from "@/components/landing/FeaturedOffer";
 import { StatsBand } from "@/components/landing/StatsBand";
 import { SampleProfile } from "@/components/landing/SampleProfile";
 import { Testimonials } from "@/components/landing/Testimonials";
@@ -16,7 +17,7 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const slugs = listSlugs().filter((slug) => slug !== HOME_SLUG);
+  const slugs = listSlugs();
   return slugs.map((slug) => ({ industry: slug }));
 }
 
@@ -37,12 +38,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function IndustryPage({ params }: Props) {
   const { industry: slug } = await params;
 
-  // The home-page config is rendered at "/" — redirect any direct hits
-  // on its slug to the canonical root URL.
-  if (slug === HOME_SLUG) {
-    permanentRedirect("/");
-  }
-
   let cfg;
   let base;
   try {
@@ -58,9 +53,10 @@ export default async function IndustryPage({ params }: Props) {
     <>
       <Nav cfg={cfg} base={base} />
       <main>
-        {sections.hero && <Hero cfg={cfg} />}
+        {sections.hero && <Hero cfg={cfg} base={base} />}
         {sections.problemPromise && <ProblemPromise cfg={cfg} />}
         {sections.plan && <Plan cfg={cfg} />}
+        {sections.featuredOffer && <FeaturedOffer cfg={cfg} base={base} />}
         {sections.statsBand && <StatsBand cfg={cfg} />}
         {sections.sampleProfile && <SampleProfile cfg={cfg} />}
         {sections.testimonials && <Testimonials cfg={cfg} />}

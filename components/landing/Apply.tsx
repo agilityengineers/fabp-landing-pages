@@ -13,6 +13,9 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
   const [step, setStep] = useState(1);
   const [data, setData] = useState({
     name: "",
+    lastName: "",
+    company: "",
+    state: "",
     email: "",
     phone: "",
     profession: cfg.industry,
@@ -31,7 +34,7 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
 
   function next(e: React.FormEvent) {
     e.preventDefault();
-    if (!data.name || !data.email || !data.profession || !data.city) return;
+    if (!data.name || !data.lastName || !data.company || !data.state || !data.email || !data.profession || !data.city) return;
     setStep(2);
   }
 
@@ -162,28 +165,54 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
                 We&rsquo;ll review and reach out within two business days to schedule your
                 15-minute intro call.
               </p>
+              <p>
+                You&rsquo;ll also receive a welcome email shortly with sign-in details for
+                your member account.
+              </p>
               <div className="form-thanks-meta">REF · APP-{ref}</div>
-              <a
-                className="form-thanks-link"
-                href={base.brand.parentUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                While you wait, browse the directory →
-              </a>
+              {cfg.sections.featuredOffer ? (
+                <a
+                  className="form-thanks-link btn btn-primary btn-lg"
+                  href={cfg.featuredOffer?.brandVoiceInterviewUrl ?? base.links.brandVoiceInterviewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Continue to your Brand Voice Interview <span className="arr" aria-hidden="true">→</span>
+                </a>
+              ) : (
+                <a
+                  className="form-thanks-link btn btn-primary btn-lg"
+                  href={base.brand.parentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  While you wait, browse the directory <span className="arr" aria-hidden="true">→</span>
+                </a>
+              )}
             </div>
           ) : step === 1 ? (
             <form onSubmit={next} className="form-body">
               <div className="form-row">
                 <label>
-                  Full name
+                  First name
                   <input
                     required
                     value={data.name}
                     onChange={(e) => update("name", e.target.value)}
-                    placeholder="Jane Reeves"
+                    placeholder="Jane"
                   />
                 </label>
+                <label>
+                  Last name
+                  <input
+                    required
+                    value={data.lastName}
+                    onChange={(e) => update("lastName", e.target.value)}
+                    placeholder="Reeves"
+                  />
+                </label>
+              </div>
+              <div className="form-row">
                 <label>
                   Email
                   <input
@@ -194,14 +223,23 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
                     placeholder="jane@firm.com"
                   />
                 </label>
-              </div>
-              <div className="form-row">
                 <label>
                   Phone
                   <input
                     value={data.phone}
                     onChange={(e) => update("phone", e.target.value)}
                     placeholder="(555) 555-5555"
+                  />
+                </label>
+              </div>
+              <div className="form-row">
+                <label>
+                  Company name
+                  <input
+                    required
+                    value={data.company}
+                    onChange={(e) => update("company", e.target.value)}
+                    placeholder="Reeves & Associates"
                   />
                 </label>
                 <label>
@@ -213,20 +251,31 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
                   />
                 </label>
               </div>
-              <label>
-                City / metro served
-                <input
-                  required
-                  value={data.city}
-                  onChange={(e) => update("city", e.target.value)}
-                  placeholder="Charlotte, NC"
-                />
-              </label>
+              <div className="form-row">
+                <label>
+                  City / metro served
+                  <input
+                    required
+                    value={data.city}
+                    onChange={(e) => update("city", e.target.value)}
+                    placeholder="Charlotte"
+                  />
+                </label>
+                <label>
+                  State (service area)
+                  <input
+                    required
+                    value={data.state}
+                    onChange={(e) => update("state", e.target.value)}
+                    placeholder="NC"
+                  />
+                </label>
+              </div>
               <button type="submit" className="btn btn-primary btn-lg form-submit">
                 Continue
                 <span className="arr">→</span>
               </button>
-              <p className="form-foot">5 fields now · 4 more on the next step</p>
+              <p className="form-foot">7 fields now · 4 more on the next step</p>
             </form>
           ) : (
             <form onSubmit={submit} className="form-body">

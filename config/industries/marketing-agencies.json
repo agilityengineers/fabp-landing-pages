@@ -1,5 +1,6 @@
 {
   "slug": "marketing-agencies",
+  "professionId": 5,
   "industry": "Marketing Agencies",
   "industryShort": "Agency",
   "industryPlural": "Marketing Agencies",
@@ -21,45 +22,108 @@
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
     "villains": [
-      { "t": "Channels you sold to clients selling against you", "b": "Paid search inflated past viability for your own pipeline." },
-      { "t": "Invisible in a crowded market", "b": "Clutch-style sites turn agencies into a star-rating commodity." },
-      { "t": "RFP volume games", "b": "Platforms reward proposal volume, not work quality." },
-      { "t": "Warm intros that go cold", "b": "By the second meeting." }
+      {
+        "t": "Channels you sold to clients selling against you",
+        "b": "Paid search inflated past viability for your own pipeline."
+      },
+      {
+        "t": "Invisible in a crowded market",
+        "b": "Clutch-style sites turn agencies into a star-rating commodity."
+      },
+      {
+        "t": "RFP volume games",
+        "b": "Platforms reward proposal volume, not work quality."
+      },
+      {
+        "t": "Warm intros that go cold",
+        "b": "By the second meeting."
+      }
     ]
   },
   "promise": {
     "headline": "Where founders search when they're done DIY-ing it — and you're the considered choice.",
     "stats": [
-      { "v": "$120k+", "l": "Avg. annual retainer" },
-      { "v": "1", "l": "Per discipline, per metro" },
-      { "v": "90 days", "l": "To first inbound" }
+      {
+        "v": "$120k+",
+        "l": "Avg. annual retainer"
+      },
+      {
+        "v": "1",
+        "l": "Per discipline, per metro"
+      },
+      {
+        "v": "90 days",
+        "l": "To first inbound"
+      }
     ]
   },
   "plan": [
-    { "time": "Step 01", "title": "Apply", "body": "A 5-minute application. We screen for discipline focus, market, and category availability." },
-    { "time": "Step 02", "title": "Brand voice interview", "body": "A 45-minute founder-led conversation that shapes how your listing sounds." },
-    { "time": "Step 03", "title": "Get listed & matched", "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue." }
+    {
+      "time": "Step 01",
+      "title": "Apply",
+      "body": "A 5-minute application. We screen for discipline focus, market, and category availability."
+    },
+    {
+      "time": "Step 02",
+      "title": "Brand voice interview",
+      "body": "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes."
+    },
+    {
+      "time": "Step 03",
+      "title": "Get listed & matched",
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
+    }
   ],
   "profile": {
     "name": "Field Notes Studio",
     "role": "Brand + Demand Agency",
     "city": "Nashville, TN",
     "stats": [
-      { "v": "8yr", "l": "In market" },
-      { "v": "12", "l": "Retainers" },
-      { "v": "B2B", "l": "Sole focus" }
+      {
+        "v": "8yr",
+        "l": "In market"
+      },
+      {
+        "v": "12",
+        "l": "Retainers"
+      },
+      {
+        "v": "B2B",
+        "l": "Sole focus"
+      }
     ]
   },
   "statsBand": [
-    { "v": "$120k+", "l": "Avg. annual retainer" },
-    { "v": "5x", "l": "More inbound vs. RFP volume games" },
-    { "v": "1 / discipline", "l": "Per discipline, per metro" }
+    {
+      "v": "$120k+",
+      "l": "Avg. annual retainer"
+    },
+    {
+      "v": "5x",
+      "l": "More inbound vs. RFP volume games"
+    },
+    {
+      "v": "1 / discipline",
+      "l": "Per discipline, per metro"
+    }
   ],
   "faq": [
-    { "q": "What does it cost to be listed?", "a": "Listing is free. Brand Voice Interview determines fit." },
-    { "q": "What does category exclusivity mean?", "a": "One listed agency per discipline, per metro." },
-    { "q": "How is this different from Clutch?", "a": "We curate, position, and amplify — not aggregate." },
-    { "q": "What happens after I apply?", "a": "A 15-minute intro call, then a Brand Voice Interview." }
+    {
+      "q": "What does it cost to be listed?",
+      "a": "Listing is free. Brand Voice Interview determines fit."
+    },
+    {
+      "q": "What does category exclusivity mean?",
+      "a": "One listed agency per discipline, per metro."
+    },
+    {
+      "q": "How is this different from Clutch?",
+      "a": "We curate, position, and amplify — not aggregate."
+    },
+    {
+      "q": "What happens after I apply?",
+      "a": "A 15-minute intro call, then a Brand Voice Interview."
+    }
   ],
   "testimonials": [],
   "sections": {

@@ -1,12 +1,13 @@
 import { Reveal } from "./Reveal";
 import { HeroCTAs } from "./HeroCTAs";
-import type { Industry } from "@/config/schema";
+import type { Industry, Base } from "@/config/schema";
 
 interface HeroProps {
   cfg: Industry;
+  base: Base;
 }
 
-export function Hero({ cfg }: HeroProps) {
+export function Hero({ cfg, base }: HeroProps) {
   const sp = cfg.profile;
   return (
     <section className="hero" id="top">
@@ -28,7 +29,7 @@ export function Hero({ cfg }: HeroProps) {
           <Reveal delay={150}>
             <p className="hero-sub">{cfg.hero.subhead}</p>
           </Reveal>
-          <HeroCTAs cfg={cfg} />
+          <HeroCTAs cfg={cfg} base={base} />
           <Reveal delay={300} className="hero-meta">
             <span className="meta-item">
               <span className="meta-dot green" />

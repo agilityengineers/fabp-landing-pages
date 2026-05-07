@@ -1,5 +1,6 @@
 {
   "slug": "ma-advisors",
+  "professionId": 2,
   "industry": "M&A Advisors",
   "industryShort": "M&A Advisor",
   "industryPlural": "M&A Advisors",
@@ -21,45 +22,108 @@
   "problem": {
     "headline": "You didn't earn the credentials to become a marketer.",
     "villains": [
-      { "t": "Ad spend that misallocates", "b": "Generic channels can't target the moment that matters." },
-      { "t": "Invisible in a crowded market", "b": "Generalist sites flatten an M&A practice into a brokerage." },
-      { "t": "Commission-bait platforms", "b": "Volume marketplaces attract the wrong sellers." },
-      { "t": "Referrals that arrive late", "b": "Introduced after the LOI is signed." }
+      {
+        "t": "Ad spend that misallocates",
+        "b": "Generic channels can't target the moment that matters."
+      },
+      {
+        "t": "Invisible in a crowded market",
+        "b": "Generalist sites flatten an M&A practice into a brokerage."
+      },
+      {
+        "t": "Commission-bait platforms",
+        "b": "Volume marketplaces attract the wrong sellers."
+      },
+      {
+        "t": "Referrals that arrive late",
+        "b": "Introduced after the LOI is signed."
+      }
     ]
   },
   "promise": {
     "headline": "Where founders look at the earliest exit signals — and find the right advisor first.",
     "stats": [
-      { "v": "$180k+", "l": "Avg. retainer floor" },
-      { "v": "1", "l": "Per deal-size band" },
-      { "v": "90 days", "l": "To first inbound" }
+      {
+        "v": "$180k+",
+        "l": "Avg. retainer floor"
+      },
+      {
+        "v": "1",
+        "l": "Per deal-size band"
+      },
+      {
+        "v": "90 days",
+        "l": "To first inbound"
+      }
     ]
   },
   "plan": [
-    { "time": "Step 01", "title": "Apply", "body": "A 5-minute application. We screen for deal experience, size band, and market availability." },
-    { "time": "Step 02", "title": "Brand voice interview", "body": "A 45-minute founder-led conversation that shapes how your listing sounds." },
-    { "time": "Step 03", "title": "Get listed & matched", "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue." }
+    {
+      "time": "Step 01",
+      "title": "Apply",
+      "body": "A 5-minute application. We screen for deal experience, size band, and market availability."
+    },
+    {
+      "time": "Step 02",
+      "title": "Brand voice interview",
+      "body": "A 45-minute senior client advisor-led conversation that shapes how your listing sounds and can be leveraged for marketing purposes."
+    },
+    {
+      "time": "Step 03",
+      "title": "Get listed & matched",
+      "body": "Your category-exclusive profile goes live. Buyer-intent inquiries route to you — not a queue."
+    }
   ],
   "profile": {
     "name": "R. Donovan",
     "role": "M&A Advisor — Lower Mid-Market",
     "city": "Dallas, TX",
     "stats": [
-      { "v": "22yr", "l": "Practice" },
-      { "v": "60+", "l": "Deals" },
-      { "v": "$1.2B", "l": "Volume" }
+      {
+        "v": "22yr",
+        "l": "Practice"
+      },
+      {
+        "v": "60+",
+        "l": "Deals"
+      },
+      {
+        "v": "$1.2B",
+        "l": "Volume"
+      }
     ]
   },
   "statsBand": [
-    { "v": "$180k+", "l": "Avg. retainer floor" },
-    { "v": "6–18mo", "l": "Founder research window" },
-    { "v": "1 / band", "l": "Per deal-size band" }
+    {
+      "v": "$180k+",
+      "l": "Avg. retainer floor"
+    },
+    {
+      "v": "6–18mo",
+      "l": "Founder research window"
+    },
+    {
+      "v": "1 / band",
+      "l": "Per deal-size band"
+    }
   ],
   "faq": [
-    { "q": "What does it cost to be listed?", "a": "Listing is free. Brand Voice Interview determines fit." },
-    { "q": "What does category exclusivity mean?", "a": "One listed advisor per deal-size band, per metro." },
-    { "q": "How is this different from BizBuySell or Axial?", "a": "Those are transaction marketplaces. We're a curated advisor directory." },
-    { "q": "What happens after I apply?", "a": "A 15-minute intro call, then a Brand Voice Interview." }
+    {
+      "q": "What does it cost to be listed?",
+      "a": "Listing is free. Brand Voice Interview determines fit."
+    },
+    {
+      "q": "What does category exclusivity mean?",
+      "a": "One listed advisor per deal-size band, per metro."
+    },
+    {
+      "q": "How is this different from BizBuySell or Axial?",
+      "a": "Those are transaction marketplaces. We're a curated advisor directory."
+    },
+    {
+      "q": "What happens after I apply?",
+      "a": "A 15-minute intro call, then a Brand Voice Interview."
+    }
   ],
   "testimonials": [],
   "sections": {

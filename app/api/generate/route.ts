@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateIndustryConfig } from "@/lib/claude";
-import { saveIndustry } from "@/lib/config";
+import { listSlugs, saveIndustry } from "@/lib/config";
 import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
@@ -22,8 +22,27 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const expectedSlug = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  if (expectedSlug && listSlugs().includes(expectedSlug)) {
+    return NextResponse.json(
+      { error: `An industry with slug "${expectedSlug}" already exists.` },
+      { status: 409 }
+    );
+  }
+
   try {
     const config = await generateIndustryConfig(name.trim(), notes.trim());
+    if (listSlugs().includes(config.slug)) {
+      return NextResponse.json(
+        { error: `An industry with slug "${config.slug}" already exists.` },
+        { status: 409 }
+      );
+    }
     saveIndustry(config.slug, config);
     return NextResponse.json({ slug: config.slug, config });
   } catch (err) {

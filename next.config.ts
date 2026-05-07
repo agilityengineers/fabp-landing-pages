@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "www.findabusinesspro.com" },
     ],
   },
-  allowedDevOrigins: ["*"],
 };
 
 export default nextConfig;
