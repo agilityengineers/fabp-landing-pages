@@ -29,3 +29,28 @@ CREATE INDEX IF NOT EXISTS failed_submissions_status_idx
 
 CREATE INDEX IF NOT EXISTS failed_submissions_email_idx
   ON failed_submissions (email);
+
+-- Playbook lead-capture table
+-- Stores every submission of the gated Provider Playbook download form.
+CREATE TABLE IF NOT EXISTS playbook_leads (
+  id            SERIAL        PRIMARY KEY,
+  first_name    VARCHAR(255)  NOT NULL,
+  last_name     VARCHAR(255)  NOT NULL,
+  email         VARCHAR(255)  NOT NULL,
+  phone         VARCHAR(50)   NOT NULL,
+  consent       BOOLEAN       NOT NULL,
+  industry_slug VARCHAR(255)  NOT NULL,
+  user_agent    TEXT,
+  ip_address    VARCHAR(64),
+  submitted_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  slack_status  VARCHAR(20)   NOT NULL DEFAULT 'pending'
+);
+
+CREATE INDEX IF NOT EXISTS playbook_leads_industry_idx
+  ON playbook_leads (industry_slug);
+
+CREATE INDEX IF NOT EXISTS playbook_leads_submitted_idx
+  ON playbook_leads (submitted_at DESC);
+
+CREATE INDEX IF NOT EXISTS playbook_leads_email_idx
+  ON playbook_leads (email);

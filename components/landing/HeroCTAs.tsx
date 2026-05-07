@@ -1,10 +1,14 @@
 "use client";
 import type { Industry, Base } from "@/config/schema";
+import { PlaybookButton } from "./PlaybookButton";
 
 interface HeroCTAsProps {
   cfg: Industry;
   base: Base;
 }
+
+const TURNSTILE_SITE_KEY =
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? null;
 
 export function HeroCTAs({ cfg, base }: HeroCTAsProps) {
   function scrollToApply() {
@@ -38,9 +42,11 @@ export function HeroCTAs({ cfg, base }: HeroCTAsProps) {
         {cfg.hero.primaryCta}
         <span className="arr">→</span>
       </button>
-      <a href="/provider-playbook.pdf" className="btn btn-ghost btn-lg" target="_blank" rel="noopener noreferrer">
-        ↓ {cfg.hero.secondaryCta}
-      </a>
+      <PlaybookButton
+        industrySlug={cfg.slug}
+        label={cfg.hero.secondaryCta}
+        turnstileSiteKey={TURNSTILE_SITE_KEY}
+      />
     </div>
   );
 }

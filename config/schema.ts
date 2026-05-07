@@ -87,6 +87,15 @@ export const industrySchema = z.object({
 
   showFounder: z.boolean().default(false),
   accent: z.enum(["navy", "midnight", "ink", "forest"]).default("navy"),
+
+  playbook: z
+    .object({
+      s3Key: z.string(),
+      fileName: z.string(),
+      updatedAt: z.string(),
+      source: z.enum(["uploaded", "generated"]),
+    })
+    .optional(),
 });
 
 export const baseSchema = z.object({
