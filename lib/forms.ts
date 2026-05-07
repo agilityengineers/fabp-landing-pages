@@ -19,6 +19,7 @@ export type ApplicationData = {
   fit?: string;
   industrySlug: string;
   submittedAt: string;
+  variant?: "control" | "outcome" | "explicit";
 };
 
 const BD_API_ENDPOINT = "https://www.findabusinesspro.com/api/v2/user/create";
@@ -187,6 +188,7 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
     city: data.city,
     state: data.state,
     industrySlug: data.industrySlug,
+    variant: data.variant ?? "none",
     submittedAt: data.submittedAt,
   });
 

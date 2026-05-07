@@ -71,6 +71,7 @@ export const industrySchema = z.object({
     founder: z.boolean(),
     apply: z.boolean(),
     featuredOffer: z.boolean().default(false),
+    aiAdvantage: z.boolean().default(false),
   }),
 
   featuredOffer: z

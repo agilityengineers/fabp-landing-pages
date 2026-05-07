@@ -41,11 +41,24 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
+    const variantMatch = typeof document !== "undefined"
+      ? document.cookie.match(/(?:^|;\s*)fabp_ai_variant=([^;]+)/)
+      : null;
+    const variant = variantMatch?.[1];
+    const variantField =
+      variant === "control" || variant === "outcome" || variant === "explicit"
+        ? { variant }
+        : {};
     try {
       await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, industrySlug: cfg.slug, submittedAt: new Date().toISOString() }),
+        body: JSON.stringify({
+          ...data,
+          ...variantField,
+          industrySlug: cfg.slug,
+          submittedAt: new Date().toISOString(),
+        }),
       });
     } catch {
       // silently continue — show thank-you regardless
