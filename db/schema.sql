@@ -54,3 +54,25 @@ CREATE INDEX IF NOT EXISTS playbook_leads_submitted_idx
 
 CREATE INDEX IF NOT EXISTS playbook_leads_email_idx
   ON playbook_leads (email);
+
+-- Playbook generation jobs
+-- Tracks each Anthropic-driven generation run for a per-industry playbook,
+-- including the resulting draft S3 key and (after admin review) the
+-- published key.
+CREATE TABLE IF NOT EXISTS playbook_jobs (
+  id               SERIAL        PRIMARY KEY,
+  industry_slug    VARCHAR(255)  NOT NULL,
+  status           VARCHAR(20)   NOT NULL DEFAULT 'running',
+  draft_s3_key     VARCHAR(500),
+  published_s3_key VARCHAR(500),
+  notes            TEXT,
+  error_message    TEXT,
+  created_at       TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  completed_at     TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS playbook_jobs_industry_idx
+  ON playbook_jobs (industry_slug, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS playbook_jobs_status_idx
+  ON playbook_jobs (status);
