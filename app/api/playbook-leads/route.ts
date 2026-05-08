@@ -74,19 +74,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { key, fileName } = resolvePlaybookKey(parsed.industrySlug);
-
-  let presignedUrl: string;
-  try {
-    presignedUrl = await getPresignedDownloadUrl(key, fileName, 300);
-  } catch (err) {
-    console.error("[playbook-leads] presigned URL generation failed:", err);
-    return NextResponse.json(
-      { error: "Playbook delivery is temporarily unavailable" },
-      { status: 503 },
-    );
-  }
-
   let leadId: number | null = null;
   try {
     const insert = await query(
@@ -113,6 +100,15 @@ export async function POST(req: NextRequest) {
       { error: "Submission failed" },
       { status: 500 },
     );
+  }
+
+  const { key, fileName } = resolvePlaybookKey(parsed.industrySlug);
+
+  let presignedUrl: string | null = null;
+  try {
+    presignedUrl = await getPresignedDownloadUrl(key, fileName, 300);
+  } catch (err) {
+    console.error("[playbook-leads] presigned URL generation failed:", err);
   }
 
   const fullName = `${parsed.firstName} ${parsed.lastName}`.trim();
@@ -149,6 +145,13 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       console.error("[playbook-leads] failed to update slack_status:", err);
     }
+  }
+
+  if (!presignedUrl) {
+    return NextResponse.json(
+      { error: "Playbook delivery is temporarily unavailable" },
+      { status: 503 },
+    );
   }
 
   return NextResponse.json({ ok: true, downloadUrl: presignedUrl });
