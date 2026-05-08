@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { query } from "@/lib/db";
 import { loadIndustry } from "@/lib/config";
@@ -6,6 +7,7 @@ import { postSlackBlockKit } from "@/lib/slack";
 import {
   DEFAULT_PLAYBOOK_KEY,
   getPresignedDownloadUrl,
+  objectExists,
 } from "@/lib/s3";
 import { verifyTurnstile } from "@/lib/turnstile";
 
@@ -76,13 +78,62 @@ export async function POST(req: NextRequest) {
 
   const { key, fileName } = resolvePlaybookKey(parsed.industrySlug);
 
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get("admin-auth")?.value === "1";
+  const envContext = {
+    awsRegion: process.env.AWS_REGION ? "set" : "unset",
+    awsBucket: process.env.AWS_S3_BUCKET ? "set" : "unset",
+    awsAccessKey: process.env.AWS_ACCESS_KEY_ID ? "set" : "unset",
+    awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY ? "set" : "unset",
+  };
+
+  try {
+    const exists = await objectExists(key);
+    if (!exists) {
+      console.error(
+        "[playbook-leads] playbook object missing",
+        { key, ...envContext },
+      );
+      return NextResponse.json(
+        {
+          error:
+            "The playbook hasn't been uploaded yet. Please try again shortly.",
+          ...(isAdmin
+            ? { detail: `S3 object not found at key "${key}"` }
+            : {}),
+        },
+        { status: 503 },
+      );
+    }
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error(
+      "[playbook-leads] S3 HEAD check failed",
+      { key, ...envContext, error: detail },
+    );
+    return NextResponse.json(
+      {
+        error: "Playbook delivery is temporarily unavailable",
+        ...(isAdmin ? { detail } : {}),
+      },
+      { status: 503 },
+    );
+  }
+
   let presignedUrl: string;
   try {
     presignedUrl = await getPresignedDownloadUrl(key, fileName, 300);
   } catch (err) {
-    console.error("[playbook-leads] presigned URL generation failed:", err);
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error(
+      "[playbook-leads] presigned URL generation failed",
+      { key, ...envContext, error: detail },
+    );
     return NextResponse.json(
-      { error: "Playbook delivery is temporarily unavailable" },
+      {
+        error: "Playbook delivery is temporarily unavailable",
+        ...(isAdmin ? { detail } : {}),
+      },
       { status: 503 },
     );
   }
