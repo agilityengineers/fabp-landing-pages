@@ -499,7 +499,6 @@ a { color: inherit; }
 .form-thanks-mark svg { width: 60px; height: 60px; }
 .form-thanks h3 { font-family: var(--serif); font-size: 34px; line-height: 1.15; margin: 0 0 12px; letter-spacing: -0.012em; }
 .form-thanks p { color: var(--ink-500); margin: 0 auto 24px; font-size: 17px; line-height: 1.55; max-width: 44ch; }
-.form-thanks-meta { color: var(--ink-400); font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.14em; margin-top: 4px; }
 .form-thanks-link { margin-top: 28px; }
 @media (min-width: 1024px) {
   .form-thanks { padding: 56px 24px; }
