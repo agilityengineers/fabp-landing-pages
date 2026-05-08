@@ -160,6 +160,101 @@ async function getTemplate(id: string): Promise<void> {
   }
 }
 
+async function fixResetPasswordTag(id: string, apply: boolean): Promise<void> {
+  const apiKey = requireApiKey();
+
+  // 1. Fetch current body
+  const getUrl = `${BD_BASE}/get/${encodeURIComponent(id)}`;
+  const getRes = await fetch(getUrl, { headers: { "X-Api-Key": apiKey, accept: "application/json" } });
+  const getText = await getRes.text();
+  if (!getRes.ok) {
+    console.error(`HTTP ${getRes.status} from ${getUrl}`);
+    console.error(getText);
+    exit(1);
+  }
+  let json: GetResponse;
+  try {
+    json = JSON.parse(getText) as GetResponse;
+  } catch {
+    console.error("Could not parse GET response as JSON. Raw response:");
+    console.error(getText);
+    exit(1);
+  }
+  if (json.status !== "success") {
+    console.error("BD API returned a non-success status on GET:");
+    console.error(JSON.stringify(json, null, 2));
+    exit(1);
+  }
+  const row: TemplateRow | undefined =
+    Array.isArray(json.message)
+      ? json.message[0]
+      : (json.message && typeof json.message === "object" ? (json.message as TemplateRow) : undefined);
+  if (!row || !row.email_id || typeof row.email_body !== "string") {
+    console.error("No template/body found for that id. Full response:");
+    console.error(JSON.stringify(json, null, 2));
+    exit(1);
+  }
+
+  const original = row.email_body;
+  // Replace the broken double-percent tag with the correct triple-percent tag.
+  // Use a regex anchored on the literal token so we don't touch correct ones.
+  const re = /%%set_password_url%%(?!%)/g;
+  const matches = original.match(re);
+  if (!matches || matches.length === 0) {
+    console.log(`Template ${row.email_id} ("${row.email_name}") does not contain "%%set_password_url%%".`);
+    if (original.includes("%%%set_password_url%%%")) {
+      console.log("It already uses the correct \"%%%set_password_url%%%\" tag — nothing to fix.");
+    } else {
+      console.log("No reset-password merge tag was found at all. Manual edit required.");
+    }
+    return;
+  }
+  const updated = original.replace(re, "%%%set_password_url%%%");
+
+  console.log(`Template ${row.email_id} ("${row.email_name}")`);
+  console.log(`Found ${matches.length} occurrence(s) of "%%set_password_url%%" — will replace with "%%%set_password_url%%%".`);
+  console.log("");
+  console.log("=== BEFORE (snippet around first match) ===");
+  const idx = original.indexOf("%%set_password_url%%");
+  console.log(original.slice(Math.max(0, idx - 80), idx + 100));
+  console.log("");
+  console.log("=== AFTER (snippet around first match) ===");
+  const idx2 = updated.indexOf("%%%set_password_url%%%");
+  console.log(updated.slice(Math.max(0, idx2 - 80), idx2 + 100));
+  console.log("");
+
+  if (!apply) {
+    console.log("Dry run — no changes sent. Re-run with `--apply` to PUT the update to BD.");
+    return;
+  }
+
+  // 2. PUT the updated body back
+  const putUrl = `${BD_BASE}/update`;
+  const form = new URLSearchParams({
+    email_id: String(row.email_id),
+    email_body: updated,
+  });
+  const putRes = await fetch(putUrl, {
+    method: "PUT",
+    headers: {
+      "X-Api-Key": apiKey,
+      "Content-Type": "application/x-www-form-urlencoded",
+      accept: "application/json",
+    },
+    body: form.toString(),
+  });
+  const putText = await putRes.text();
+  if (!putRes.ok) {
+    console.error(`HTTP ${putRes.status} from PUT ${putUrl}`);
+    console.error(putText);
+    exit(1);
+  }
+  console.log("=== PUT response ===");
+  console.log(putText);
+  console.log("");
+  console.log("Done. Submit a test application and confirm the welcome email now shows the reset link.");
+}
+
 async function main(): Promise<void> {
   const [, , cmd, ...rest] = argv;
   if (cmd === "list") {
@@ -175,9 +270,20 @@ async function main(): Promise<void> {
     await getTemplate(id);
     return;
   }
+  if (cmd === "fix-reset-tag") {
+    const id = rest[0];
+    if (!id) {
+      console.error("Usage: tsx scripts/bd-templates.ts fix-reset-tag <email_id> [--apply]");
+      exit(1);
+    }
+    const apply = rest.includes("--apply");
+    await fixResetPasswordTag(id, apply);
+    return;
+  }
   console.error("Usage:");
   console.error("  tsx scripts/bd-templates.ts list [search]");
   console.error("  tsx scripts/bd-templates.ts get  <email_id>");
+  console.error("  tsx scripts/bd-templates.ts fix-reset-tag <email_id> [--apply]");
   exit(1);
 }
 
