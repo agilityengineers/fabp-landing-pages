@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "db:init": "node scripts/db-init.js",
-    "validate:configs": "tsx scripts/validate-configs.ts"
+    "validate:configs": "tsx scripts/validate-configs.ts",
+    "bd:list-templates": "tsx scripts/bd-templates.ts list",
+    "bd:get-template": "tsx scripts/bd-templates.ts get"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
