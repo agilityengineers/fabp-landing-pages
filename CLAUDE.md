@@ -62,9 +62,9 @@ Originated as a Claude Design handoff (`README.md`, `chats/`, `project/`) — th
 
 ## Email policy
 
-This app does not send any email directly. All transactional email (welcome, login credentials, notifications) is sent by Brilliant Directories via the BD API (`send_welcome_email: "1"` / `send_email_notifications: "1"` in `lib/forms.ts`). Operational alerts go to Slack via `ALERT_WEBHOOK_URL` (BD failures) and `PLAYBOOK_SLACK_WEBHOOK_URL` (Provider Playbook leads). Do not add SMTP, Resend, SendGrid, Postmark, or any other email-sending integration to this codebase.
+This app does not send any email directly today. All transactional email (welcome, login credentials, notifications) is sent by Brilliant Directories via the BD API (`send_welcome_email: "1"` / `send_email_notifications: "1"` in `lib/forms.ts`). Operational alerts go to Slack via `ALERT_WEBHOOK_URL` (BD failures) and `PLAYBOOK_SLACK_WEBHOOK_URL` (Provider Playbook leads).
 
-Note: `@sendgrid/mail` is still listed in `package.json` but is unused and intentionally retained pending an explicit removal decision. Do not import it; it must not be used for outbound email.
+If outbound email is ever added to this codebase, **SendGrid is the chosen provider** — `@sendgrid/mail` is already listed in `package.json` for that future. Do not introduce any other email integration (Resend, Postmark, raw SMTP, etc.). Until that explicit decision is made, `@sendgrid/mail` remains unused and must not be imported.
 
 ## Responsive conventions
 
