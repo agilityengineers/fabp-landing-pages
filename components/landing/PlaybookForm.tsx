@@ -158,9 +158,11 @@ export function PlaybookForm({
         ok?: boolean;
         downloadUrl?: string;
         error?: string;
+        detail?: string;
       };
       if (!res.ok || !payload.ok || !payload.downloadUrl) {
-        setError(payload.error ?? "Submission failed. Please try again.");
+        const baseError = payload.error ?? "Submission failed. Please try again.";
+        setError(payload.detail ? `${baseError} (${payload.detail})` : baseError);
         if (turnstileWidgetIdRef.current && window.turnstile) {
           try {
             window.turnstile.reset(turnstileWidgetIdRef.current);
