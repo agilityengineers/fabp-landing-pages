@@ -57,8 +57,14 @@ Originated as a Claude Design handoff (`README.md`, `chats/`, `project/`) — th
 
 - Path alias `@/*` resolves to the repo root (`tsconfig.json`).
 - `app/page.tsx` just `redirect("/cpas")` — there is no marketing homepage; every real page lives under an industry slug.
-- `lib/forms.ts` `submitApplication` always appends to `data/applications.jsonl`, then `forwardToExternal` posts a Block Kit notification to `SLACK_WEBHOOK_URL` when set. Slack failures are caught and logged — they never fail the request, so leads are not dropped over a third-party outage. Resend/HubSpot remain open integration points if needed later.
+- `lib/forms.ts` `submitApplication` POSTs the applicant to the Brilliant Directories API (`/api/v2/user/create`) to create the member. On any failure it writes a row to the `failed_submissions` table and fires a Slack-compatible alert to `ALERT_WEBHOOK_URL` (caught/logged, never fails the request). Auto-retry runs up to 3 attempts via `lib/retry-scheduler.ts`.
 - `next.config.ts` only allowlists `images.unsplash.com` and `www.findabusinesspro.com` for `next/image` — add new remote hosts there.
+
+## Email policy
+
+This app does not send any email directly. All transactional email (welcome, login credentials, notifications) is sent by Brilliant Directories via the BD API (`send_welcome_email: "1"` / `send_email_notifications: "1"` in `lib/forms.ts`). Operational alerts go to Slack via `ALERT_WEBHOOK_URL` (BD failures) and `PLAYBOOK_SLACK_WEBHOOK_URL` (Provider Playbook leads). Do not add SMTP, Resend, SendGrid, Postmark, or any other email-sending integration to this codebase.
+
+Note: `@sendgrid/mail` is still listed in `package.json` but is unused and intentionally retained pending an explicit removal decision. Do not import it; it must not be used for outbound email.
 
 ## Responsive conventions
 
@@ -82,4 +88,4 @@ Fluid spacing tokens (declared in `:root`) replace hand-tuned per-breakpoint pad
 
 ## Environment variables
 
-See `.env.example`. Required: `ANTHROPIC_API_KEY`, `ADMIN_PASSWORD`. Optional: `NEXT_PUBLIC_SITE_URL` (used by `sitemap.ts` and OG metadata), `RESEND_API_KEY`, `HUBSPOT_TOKEN`.
+See `.env.example`. Required: `ANTHROPIC_API_KEY`, `ADMIN_PASSWORD`. Optional: `NEXT_PUBLIC_SITE_URL` (used by `sitemap.ts` and OG metadata), `ALERT_WEBHOOK_URL` (Slack webhook for BD failure alerts), `PLAYBOOK_SLACK_WEBHOOK_URL` (Slack webhook for Provider Playbook leads).
