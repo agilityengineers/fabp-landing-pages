@@ -12,7 +12,9 @@
     "validate:configs": "tsx scripts/validate-configs.ts",
     "bd:list-templates": "tsx scripts/bd-templates.ts list",
     "bd:get-template": "tsx scripts/bd-templates.ts get",
-    "bd:fix-reset-tag": "tsx scripts/bd-templates.ts fix-reset-tag"
+    "bd:fix-reset-tag": "tsx scripts/bd-templates.ts fix-reset-tag",
+    "bd:scan-tags": "tsx scripts/bd-templates.ts scan-tags",
+    "bd:replace-reset-with-link": "tsx scripts/bd-templates.ts replace-reset-with-link"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

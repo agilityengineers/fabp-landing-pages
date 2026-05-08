@@ -270,6 +270,94 @@ async function main(): Promise<void> {
     await getTemplate(id);
     return;
   }
+  if (cmd === "replace-reset-with-link") {
+    const apiKey = requireApiKey();
+    const id = rest[0];
+    const apply = rest.includes("--apply");
+    if (!id) {
+      console.error("Usage: tsx scripts/bd-templates.ts replace-reset-with-link <email_id> [--apply]");
+      exit(1);
+    }
+    const getUrl = `${BD_BASE}/get/${encodeURIComponent(id)}`;
+    const getRes = await fetch(getUrl, { headers: { "X-Api-Key": apiKey, accept: "application/json" } });
+    const getText = await getRes.text();
+    if (!getRes.ok) { console.error(`HTTP ${getRes.status}`); console.error(getText); exit(1); }
+    const json = JSON.parse(getText) as GetResponse;
+    if (json.status !== "success") { console.error(JSON.stringify(json, null, 2)); exit(1); }
+    const row = (Array.isArray(json.message) ? json.message[0] : json.message) as TemplateRow | undefined;
+    if (!row || typeof row.email_body !== "string") { console.error("No body found"); exit(1); }
+    const original = row.email_body;
+    const link = `<a href="https://www.findabusinesspro.com/login/forgot-password?email=%%%email%%%" style="color:#0d83dd;text-decoration:underline;">Click here to set your password</a>`;
+    // Replace any of the three buggy/correct password-url merge tag forms with the fallback link.
+    const re = /%%%?set_password_url%%%?/g;
+    const matches = original.match(re);
+    if (!matches || matches.length === 0) {
+      console.log("No set_password_url merge tag found in this template. Manual edit required.");
+      return;
+    }
+    const updated = original.replace(re, link);
+    console.log(`Template ${row.email_id} ("${row.email_name}")`);
+    console.log(`Replacing ${matches.length} occurrence(s) of set_password_url merge tag with fallback link.`);
+    console.log("");
+    console.log("=== BEFORE (snippet) ===");
+    const idx = original.search(re);
+    console.log(original.slice(Math.max(0, idx - 80), idx + 100));
+    console.log("");
+    console.log("=== AFTER (snippet) ===");
+    const idx2 = updated.indexOf("forgot-password");
+    console.log(updated.slice(Math.max(0, idx2 - 120), idx2 + 200));
+    console.log("");
+    if (!apply) {
+      console.log("Dry run — no changes sent. Re-run with `--apply` to PUT the update to BD.");
+      return;
+    }
+    const putRes = await fetch(`${BD_BASE}/update`, {
+      method: "PUT",
+      headers: { "X-Api-Key": apiKey, "Content-Type": "application/x-www-form-urlencoded", accept: "application/json" },
+      body: new URLSearchParams({ email_id: String(row.email_id), email_body: updated }).toString(),
+    });
+    const putText = await putRes.text();
+    if (!putRes.ok) { console.error(`HTTP ${putRes.status}`); console.error(putText); exit(1); }
+    console.log("=== PUT response ===");
+    console.log(putText);
+    return;
+  }
+  if (cmd === "scan-tags") {
+    const apiKey = requireApiKey();
+    const needle = (rest[0] ?? "password|reset|url|link|activation").toLowerCase();
+    const re = new RegExp(needle, "i");
+    const maxId = Number(rest[1] ?? 60);
+    console.log(`Scanning template ids 1..${maxId} for merge tags matching /${needle}/i ...`);
+    console.log("");
+    for (let i = 1; i <= maxId; i++) {
+      const url = `${BD_BASE}/get/${i}`;
+      const res = await fetch(url, { headers: { "X-Api-Key": apiKey, accept: "application/json" } });
+      if (!res.ok) continue;
+      const text = await res.text();
+      let json: GetResponse;
+      try { json = JSON.parse(text) as GetResponse; } catch { continue; }
+      if (json.status !== "success") continue;
+      const row: TemplateRow | undefined = Array.isArray(json.message) ? json.message[0] : (json.message as TemplateRow);
+      if (!row || typeof row.email_body !== "string") continue;
+      const tags = new Set<string>();
+      const reBracket = /\[\*([a-z0-9_]+)\*\]/gi;
+      const rePercent3 = /%%%([a-z0-9_]+)%%%/gi;
+      const rePercent2 = /%%([a-z0-9_]+)%%/gi;
+      const rePercent1 = /%([a-z0-9_]+)%/gi;
+      let m: RegExpExecArray | null;
+      while ((m = reBracket.exec(row.email_body)) !== null) if (re.test(m[1])) tags.add(`[*${m[1]}*]`);
+      while ((m = rePercent3.exec(row.email_body)) !== null) if (re.test(m[1])) tags.add(`%%%${m[1]}%%%`);
+      while ((m = rePercent2.exec(row.email_body)) !== null) if (re.test(m[1])) tags.add(`%%${m[1]}%%`);
+      while ((m = rePercent1.exec(row.email_body)) !== null) if (re.test(m[1])) tags.add(`%${m[1]}%`);
+      if (tags.size > 0) {
+        console.log(`id=${row.email_id}  name="${row.email_name}"  triggers="${row.triggers ?? ""}"  subject="${row.email_subject ?? ""}"`);
+        for (const t of [...tags].sort()) console.log(`    ${t}`);
+        console.log("");
+      }
+    }
+    console.log("Done.");
+    return;
+  }
   if (cmd === "fix-reset-tag") {
     const id = rest[0];
     if (!id) {
