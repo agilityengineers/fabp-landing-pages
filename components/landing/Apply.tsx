@@ -67,8 +67,6 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
     setSubmitting(false);
   }
 
-  const ref = Math.floor(Math.random() * 9000 + 1000);
-
   return (
     <section className="apply" id="apply">
       <div className="container apply-grid">
@@ -182,7 +180,6 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
                 You&rsquo;ll also receive a welcome email shortly with sign-in details for
                 your member account.
               </p>
-              <div className="form-thanks-meta">REF · APP-{ref}</div>
               {cfg.sections.featuredOffer ? (
                 <a
                   className="form-thanks-link btn btn-primary btn-lg"
