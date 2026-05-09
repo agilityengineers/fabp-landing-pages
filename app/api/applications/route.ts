@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { submitApplication } from "@/lib/forms";
 import type { ApplicationData } from "@/lib/forms";
 
+function clientIp(req: NextRequest): string | undefined {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0]?.trim();
+  return req.headers.get("x-real-ip") ?? undefined;
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json() as ApplicationData;
 
@@ -21,6 +27,8 @@ export async function POST(req: NextRequest) {
     await submitApplication({
       ...body,
       submittedAt: body.submittedAt ?? new Date().toISOString(),
+      userAgent: req.headers.get("user-agent") ?? undefined,
+      ipAddress: clientIp(req),
     });
     return NextResponse.json({ ok: true });
   } catch (err) {

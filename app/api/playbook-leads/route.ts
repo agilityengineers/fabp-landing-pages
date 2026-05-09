@@ -10,6 +10,8 @@ import {
   objectExists,
 } from "@/lib/s3";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { recordEvent } from "@/lib/leads";
+import { safeSyncLeadToBvi } from "@/lib/bvi-sync";
 
 const leadSchema = z.object({
   firstName: z.string().trim().min(1).max(100),
@@ -191,6 +193,19 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       console.error("[playbook-leads] failed to update slack_status:", err);
     }
+
+    try {
+      await recordEvent("playbook", leadId, "created", {
+        industry_slug: parsed.industrySlug,
+        slack_status: slackResult,
+      }, "system");
+    } catch (err) {
+      console.error("[playbook-leads] failed to record creation event:", err);
+    }
+
+    // Best-effort BVI push: if it fails, the row is left bvi_sync_status='failed'
+    // and the cron retry job (or admin manual retry) will pick it up.
+    void safeSyncLeadToBvi("playbook", leadId, "system");
   }
 
   if (!presignedUrl) {
