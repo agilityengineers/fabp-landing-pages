@@ -5,13 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev      # Next.js dev server (Replit workflow runs it on port 5000, host 0.0.0.0)
-npm run build    # Production build
-npm run start    # Serve the built app
-npm run lint     # next lint
+npm run dev        # Next.js dev server (Replit workflow runs it on port 5000, host 0.0.0.0)
+npm run build      # Production build
+npm run start      # Serve the built app
+npm run lint       # next lint
+npm test           # vitest run
+npm run typecheck  # tsc --noEmit
 ```
 
-No test runner is configured.
+Vitest covers the leads system (`lib/bvi-client`, `lib/leads`, `lib/bvi-sync`).
+Tests live in `tests/` with their own `tests/tsconfig.json` and mock
+`@/lib/db`, so they don't require a live Postgres.
 
 ## What this app is
 
@@ -57,7 +61,26 @@ Originated as a Claude Design handoff (`README.md`, `chats/`, `project/`) — th
 
 - Path alias `@/*` resolves to the repo root (`tsconfig.json`).
 - `app/page.tsx` just `redirect("/cpas")` — there is no marketing homepage; every real page lives under an industry slug.
-- `lib/forms.ts` `submitApplication` POSTs the applicant to the Brilliant Directories API (`/api/v2/user/create`) to create the member. On any failure it writes a row to the `failed_submissions` table and fires a Slack-compatible alert to `ALERT_WEBHOOK_URL` (caught/logged, never fails the request). Auto-retry runs up to 3 attempts via `lib/retry-scheduler.ts`.
+- `lib/forms.ts` `submitApplication` writes an `invitation_leads` row first (so admins always see the lead regardless of BD outcome), then POSTs the applicant to the Brilliant Directories API (`/api/v2/user/create`) to create the member, then updates `bd_status` to `created`/`failed`. On BD failure it also writes a row to the `failed_submissions` table and fires a Slack-compatible alert to `ALERT_WEBHOOK_URL` (caught/logged, never fails the request). Auto-retry runs up to 3 attempts via `lib/retry-scheduler.ts`. Finally, a fire-and-forget BVI push runs via `lib/bvi-sync.ts`.
+
+## Leads management
+
+`/admin/playbook-leads` and `/admin/invitation-leads` are the two admin
+surfaces for managing leads. Both use `components/admin/LeadsManager.tsx`,
+which talks to `/api/admin/leads*`. Source of truth is split across two
+tables (`playbook_leads`, `invitation_leads`) plus polymorphic children
+(`lead_notes`, `lead_events`, `bvi_sync_log`). Lead operations live in
+`lib/leads.ts`; nothing else should hand-write SQL against these tables.
+
+Every lead is also pushed to the Brand Voice Interview Flow Tracker
+(`https://brand-voice-interview.com/api/public/intake-submit`) via
+`lib/bvi-client.ts` + `lib/bvi-sync.ts`. Pushes are idempotent (BVI dedupes
+by email; we additionally store `bvi_idempotency_key`). Failed pushes are
+retried by `/api/cron/sync-bvi`. Inbound BVI status updates are accepted at
+`/api/webhooks/bvi` (HMAC-signed via `BVI_WEBHOOK_SECRET`).
+
+See `docs/leads-system.md` for the full design, env-var list, and end-to-end
+test plan.
 - `next.config.ts` only allowlists `images.unsplash.com` and `www.findabusinesspro.com` for `next/image` — add new remote hosts there.
 
 ## Email policy

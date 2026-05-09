@@ -3,6 +3,8 @@ import fs from "fs";
 import path from "path";
 import { query, withClient } from "@/lib/db";
 import { loadIndustry } from "@/lib/config";
+import { recordEvent } from "@/lib/leads";
+import { safeSyncLeadToBvi } from "@/lib/bvi-sync";
 
 export type ApplicationData = {
   name: string;
@@ -20,7 +22,78 @@ export type ApplicationData = {
   industrySlug: string;
   submittedAt: string;
   variant?: "control" | "outcome" | "explicit";
+  userAgent?: string;
+  ipAddress?: string;
 };
+
+async function insertInvitationLead(
+  data: ApplicationData,
+): Promise<number | null> {
+  try {
+    const result = await query(
+      `INSERT INTO invitation_leads
+        (first_name, last_name, email, phone, company,
+         profession, city, state, years, website, spend, fit,
+         industry_slug, variant, user_agent, ip_address, submitted_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+       RETURNING id`,
+      [
+        data.name,
+        data.lastName,
+        data.email,
+        data.phone ?? null,
+        data.company,
+        data.profession,
+        data.city,
+        data.state,
+        data.years ?? null,
+        data.website ?? null,
+        data.spend ?? null,
+        data.fit ?? null,
+        data.industrySlug,
+        data.variant ?? null,
+        data.userAgent ?? null,
+        data.ipAddress ?? null,
+        data.submittedAt,
+      ],
+    );
+    return result.rows[0]?.id ?? null;
+  } catch (err) {
+    console.error("[invitation-leads] insert failed:", err);
+    return null;
+  }
+}
+
+async function updateInvitationLeadBd(
+  id: number,
+  patch: {
+    bd_status: "created" | "failed";
+    bd_error?: string | null;
+    bd_user_id?: string | null;
+    failed_submission_id?: number | null;
+  },
+): Promise<void> {
+  try {
+    await query(
+      `UPDATE invitation_leads
+          SET bd_status = $1,
+              bd_error = $2,
+              bd_user_id = $3,
+              failed_submission_id = $4,
+              updated_at = NOW()
+        WHERE id = $5`,
+      [
+        patch.bd_status,
+        patch.bd_error ?? null,
+        patch.bd_user_id ?? null,
+        patch.failed_submission_id ?? null,
+        id,
+      ],
+    );
+  } catch (err) {
+    console.error("[invitation-leads] bd-status update failed:", err);
+  }
+}
 
 const BD_API_ENDPOINT = "https://www.findabusinesspro.com/api/v2/user/create";
 const BD_SUBSCRIPTION_ID = "21";
@@ -111,13 +184,14 @@ function buildBdFields(
 async function logFailedSubmission(
   data: ApplicationData,
   errorDetail: string
-): Promise<void> {
+): Promise<number | null> {
   try {
-    await query(
+    const result = await query(
       `INSERT INTO failed_submissions
         (name, last_name, company, state, email, phone, profession, city,
          years, website, spend, fit, industry_slug, submitted_at, error_detail)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+       RETURNING id`,
       [
         data.name,
         data.lastName,
@@ -137,8 +211,10 @@ async function logFailedSubmission(
       ]
     );
     console.log("[BD] Failed submission logged to database");
+    return result.rows[0]?.id ?? null;
   } catch (dbErr) {
     console.error("[BD] Failed to log submission to database:", dbErr);
+    return null;
   }
 }
 
@@ -189,6 +265,22 @@ export async function sendFailureAlert(
   }
 }
 
+function extractBdUserId(text: string): string | null {
+  try {
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    if (typeof parsed.user_id === "string") return parsed.user_id;
+    if (typeof parsed.user_id === "number") return String(parsed.user_id);
+    if (typeof parsed.id === "string") return parsed.id;
+    if (typeof parsed.id === "number") return String(parsed.id);
+    const data = parsed.data as Record<string, unknown> | undefined;
+    if (data && typeof data.user_id === "string") return data.user_id;
+    if (data && typeof data.user_id === "number") return String(data.user_id);
+  } catch {
+    // BD sometimes returns non-JSON; ignore.
+  }
+  return null;
+}
+
 export async function submitApplication(data: ApplicationData): Promise<void> {
   console.log("[FABP Application] received submission", {
     profession: data.profession,
@@ -199,18 +291,43 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
     submittedAt: data.submittedAt,
   });
 
+  // 1) Persist the invitation lead first so admins/sales reps see it on the
+  //    Invitation Leads page regardless of BD outcome. Push to BVI happens
+  //    after BD so the BVI payload reflects the final BD status.
+  const invitationLeadId = await insertInvitationLead(data);
+  if (invitationLeadId) {
+    await recordEvent("invitation", invitationLeadId, "created", {
+      industry_slug: data.industrySlug,
+      variant: data.variant ?? null,
+    }, "system");
+  }
+
   const apiKey = process.env.BD_API_KEY;
+
+  async function handleBdFailure(detail: string): Promise<void> {
+    const failedId = await logFailedSubmission(data, detail);
+    if (invitationLeadId) {
+      await updateInvitationLeadBd(invitationLeadId, {
+        bd_status: "failed",
+        bd_error: detail,
+        failed_submission_id: failedId,
+      });
+      await recordEvent("invitation", invitationLeadId, "bd_failed", {
+        error: detail,
+        failed_submission_id: failedId,
+      }, "system");
+    }
+    await sendFailureAlert(
+      { name: data.name, lastName: data.lastName, email: data.email },
+      detail,
+    );
+  }
 
   if (!apiKey) {
     const errorDetail = "BD_API_KEY not configured on the server";
     console.error("[BD] BD_API_KEY not configured — skipping member creation");
-    await Promise.all([
-      logFailedSubmission(data, errorDetail),
-      sendFailureAlert(
-        { name: data.name, lastName: data.lastName, email: data.email },
-        errorDetail
-      ),
-    ]);
+    await handleBdFailure(errorDetail);
+    if (invitationLeadId) void safeSyncLeadToBvi("invitation", invitationLeadId);
     return;
   }
 
@@ -221,13 +338,8 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
       `No valid professionId found for industrySlug "${data.industrySlug}". ` +
       `Ensure config/industries/${data.industrySlug}.json exists and contains a "professionId" field.`;
     console.error(`[BD] ${detail}`);
-    await Promise.all([
-      logFailedSubmission(data, detail),
-      sendFailureAlert(
-        { name: data.name, lastName: data.lastName, email: data.email },
-        detail
-      ),
-    ]);
+    await handleBdFailure(detail);
+    if (invitationLeadId) void safeSyncLeadToBvi("invitation", invitationLeadId);
     return;
   }
 
@@ -252,27 +364,27 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
     if (!res.ok) {
       const errorDetail = `HTTP ${res.status}: ${text}`;
       console.error(`[BD] Member creation failed: ${errorDetail}`);
-      await Promise.all([
-        logFailedSubmission(data, errorDetail),
-        sendFailureAlert(
-          { name: data.name, lastName: data.lastName, email: data.email },
-          errorDetail
-        ),
-      ]);
+      await handleBdFailure(errorDetail);
     } else {
       console.log("[BD] Member created successfully", text);
+      const bdUserId = extractBdUserId(text);
+      if (invitationLeadId) {
+        await updateInvitationLeadBd(invitationLeadId, {
+          bd_status: "created",
+          bd_user_id: bdUserId,
+        });
+        await recordEvent("invitation", invitationLeadId, "bd_created", {
+          bd_user_id: bdUserId,
+        }, "system");
+      }
     }
   } catch (err) {
     const errorDetail = err instanceof Error ? err.message : String(err);
     console.error("[BD] Member creation error:", err);
-    await Promise.all([
-      logFailedSubmission(data, `Network/unexpected error: ${errorDetail}`),
-      sendFailureAlert(
-        { name: data.name, lastName: data.lastName, email: data.email },
-        `Network/unexpected error: ${errorDetail}`
-      ),
-    ]);
+    await handleBdFailure(`Network/unexpected error: ${errorDetail}`);
   }
+
+  if (invitationLeadId) void safeSyncLeadToBvi("invitation", invitationLeadId);
 }
 
 export interface FailedSubmissionRow {
