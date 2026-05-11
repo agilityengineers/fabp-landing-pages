@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { uploadPlaybook, DEFAULT_PLAYBOOK_KEY } from "@/lib/s3";
+import { uploadPlaybook, getDefaultPlaybookKey } from "@/lib/s3";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
@@ -39,9 +39,10 @@ export async function POST(req: NextRequest) {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
+  const key = getDefaultPlaybookKey();
 
   try {
-    await uploadPlaybook(DEFAULT_PLAYBOOK_KEY, buffer, "application/pdf");
+    await uploadPlaybook(key, buffer, "application/pdf");
   } catch (err) {
     console.error("[playbook-default] S3 upload failed:", err);
     return NextResponse.json(
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    s3Key: DEFAULT_PLAYBOOK_KEY,
+    s3Key: key,
     updatedAt: new Date().toISOString(),
   });
 }

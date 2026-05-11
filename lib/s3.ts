@@ -18,6 +18,21 @@ export function getBucketName(): string {
   return bucket;
 }
 
+function getKeyPrefix(): string {
+  const raw = process.env.AWS_S3_PREFIX ?? "";
+  if (!raw) return "";
+  return raw.replace(/^\/+/, "").replace(/\/+$/, "") + "/";
+}
+
+export function buildPlaybookKey(suffix: string): string {
+  const cleanSuffix = suffix.replace(/^\/+/, "");
+  return `${getKeyPrefix()}${cleanSuffix}`;
+}
+
+export function getDefaultPlaybookKey(): string {
+  return buildPlaybookKey("playbooks/_default.pdf");
+}
+
 export function getS3Client(): S3Client {
   if (client) return client;
   const region = process.env.AWS_REGION;
@@ -27,9 +42,6 @@ export function getS3Client(): S3Client {
   client = new S3Client({ region });
   return client;
 }
-
-export const DEFAULT_PLAYBOOK_KEY =
-  "Provider_Playbook_Business_Services_Professionals-2026.pdf";
 
 export async function uploadPlaybook(
   key: string,
