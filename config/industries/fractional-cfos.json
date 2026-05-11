@@ -134,7 +134,8 @@
     "statsBand": false,
     "testimonials": false,
     "founder": false,
-    "apply": true
+    "apply": true,
+    "aiAdvantage": true
   },
   "showFounder": false,
   "accent": "navy"

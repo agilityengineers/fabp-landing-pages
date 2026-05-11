@@ -41,11 +41,24 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
+    const variantMatch = typeof document !== "undefined"
+      ? document.cookie.match(/(?:^|;\s*)fabp_ai_variant=([^;]+)/)
+      : null;
+    const variant = variantMatch?.[1];
+    const variantField =
+      variant === "control" || variant === "outcome" || variant === "explicit"
+        ? { variant }
+        : {};
     try {
       await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, industrySlug: cfg.slug, submittedAt: new Date().toISOString() }),
+        body: JSON.stringify({
+          ...data,
+          ...variantField,
+          industrySlug: cfg.slug,
+          submittedAt: new Date().toISOString(),
+        }),
       });
     } catch {
       // silently continue — show thank-you regardless
@@ -53,8 +66,6 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
     setSubmitted(true);
     setSubmitting(false);
   }
-
-  const ref = Math.floor(Math.random() * 9000 + 1000);
 
   return (
     <section className="apply" id="apply">
@@ -169,7 +180,6 @@ export function Apply({ cfg, base, showFounder }: ApplyProps) {
                 You&rsquo;ll also receive a welcome email shortly with sign-in details for
                 your member account.
               </p>
-              <div className="form-thanks-meta">REF · APP-{ref}</div>
               {cfg.sections.featuredOffer ? (
                 <a
                   className="form-thanks-link btn btn-primary btn-lg"

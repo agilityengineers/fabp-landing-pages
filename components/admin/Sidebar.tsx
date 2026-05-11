@@ -34,11 +34,24 @@ export function Sidebar() {
         <Link href="/admin" className={isActive("/admin") ? "active" : ""}>
           📋 Industries
         </Link>
-        <Link href="/admin/applications" className={isActive("/admin/applications") ? "active" : ""}>
-          📊 Applications
-        </Link>
-        <Link href="/admin/leads" className={isActive("/admin/leads") ? "active" : ""}>
+        <Link
+          href="/admin/playbook-leads"
+          className={
+            isActive("/admin/playbook-leads") || isActive("/admin/leads")
+              ? "active"
+              : ""
+          }
+        >
           📘 Playbook leads
+        </Link>
+        <Link
+          href="/admin/invitation-leads"
+          className={isActive("/admin/invitation-leads") ? "active" : ""}
+        >
+          ✉️ Invitation leads
+        </Link>
+        <Link href="/admin/applications" className={isActive("/admin/applications") ? "active" : ""}>
+          📊 Failed submissions
         </Link>
         <Link href="/admin/settings" className={isActive("/admin/settings") ? "active" : ""}>
           ⚙️ Brand & Founder

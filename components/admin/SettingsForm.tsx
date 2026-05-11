@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from "react";
 import type { Base } from "@/config/schema";
+import { SlackTestPanel } from "./SlackTestPanel";
 
 interface SettingsFormProps {
   base: Base;
@@ -197,6 +198,8 @@ export function SettingsForm({ base: initial }: SettingsFormProps) {
           </div>
         </div>
       </div>
+
+      <SlackTestPanel />
 
       <div className="save-bar" style={{ marginTop: 0 }}>
         <div className="save-bar-left">

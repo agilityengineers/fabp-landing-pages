@@ -440,7 +440,10 @@ export type ApplicationData = {
 };
 
 export async function submitApplication(data: ApplicationData) {
-  // INTEGRATION POINT — wire to Resend / HubSpot / GoHighLevel / Calendly
+  // INTEGRATION POINT — forward to Brilliant Directories or other CRM.
+  // Note: this app does NOT send email itself. All transactional email is
+  // sent by Brilliant Directories via the BD API. Operational alerts go to
+  // Slack via ALERT_WEBHOOK_URL.
   // For now: POST to /api/applications which logs and returns 200
   // Leave a clean swap point — admin will configure later
 }
@@ -504,7 +507,7 @@ NEXT_PUBLIC_PARENT_URL=https://www.findabusinesspro.com
 ## 12. OPEN HANDOFF FLAGS (TODO comments in code)
 
 1. **Founder publish toggle per industry** — `showFounder` field exists; admin sets true when ready. Current default: `false`.
-2. **Form destination** — `submitApplication()` is a stub. Wire to Resend / HubSpot / GoHighLevel / Calendly.
+2. **Form destination** — `submitApplication()` forwards to Brilliant Directories. This app does not send any email directly; BD sends all transactional email. Operational alerts go to Slack via `ALERT_WEBHOOK_URL`.
 3. **Provider Playbook PDF** — `public/provider-playbook.pdf` is a placeholder. Replace.
 4. **Trust signals** — schema can extend with `testimonials: []` later when content is collected. Not in v1.
 5. **Real imagery** — replace hero placeholders with actual industry photos; founder portrait when going live.

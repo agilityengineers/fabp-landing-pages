@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { query } from "@/lib/db";
 import { loadIndustry } from "@/lib/config";
@@ -6,8 +7,11 @@ import { postSlackBlockKit } from "@/lib/slack";
 import {
   getDefaultPlaybookKey,
   getPresignedDownloadUrl,
+  objectExists,
 } from "@/lib/s3";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { recordEvent } from "@/lib/leads";
+import { safeSyncLeadToBvi } from "@/lib/bvi-sync";
 
 const leadSchema = z.object({
   firstName: z.string().trim().min(1).max(100),
@@ -74,19 +78,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { key, fileName } = resolvePlaybookKey(parsed.industrySlug);
-
-  let presignedUrl: string;
-  try {
-    presignedUrl = await getPresignedDownloadUrl(key, fileName, 300);
-  } catch (err) {
-    console.error("[playbook-leads] presigned URL generation failed:", err);
-    return NextResponse.json(
-      { error: "Playbook delivery is temporarily unavailable" },
-      { status: 503 },
-    );
-  }
-
   let leadId: number | null = null;
   try {
     const insert = await query(
@@ -113,6 +104,59 @@ export async function POST(req: NextRequest) {
       { error: "Submission failed" },
       { status: 500 },
     );
+  }
+
+  const { key, fileName } = resolvePlaybookKey(parsed.industrySlug);
+
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get("admin-auth")?.value === "1";
+  const envContext = {
+    awsRegion: process.env.AWS_REGION ? "set" : "unset",
+    awsBucket: process.env.AWS_S3_BUCKET ? "set" : "unset",
+    awsAccessKey: process.env.AWS_ACCESS_KEY_ID ? "set" : "unset",
+    awsSecretKey: process.env.AWS_SECRET_ACCESS_KEY ? "set" : "unset",
+  };
+
+  let presignedUrl: string | null = null;
+  let deliveryError: { error: string; detail?: string } | null = null;
+
+  try {
+    const exists = await objectExists(key);
+    if (!exists) {
+      console.error(
+        "[playbook-leads] playbook object missing",
+        { key, ...envContext },
+      );
+      deliveryError = {
+        error:
+          "The playbook hasn't been uploaded yet. Please try again shortly.",
+        ...(isAdmin ? { detail: `S3 object not found at key "${key}"` } : {}),
+      };
+    } else {
+      try {
+        presignedUrl = await getPresignedDownloadUrl(key, fileName, 300);
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : String(err);
+        console.error(
+          "[playbook-leads] presigned URL generation failed",
+          { key, ...envContext, error: detail },
+        );
+        deliveryError = {
+          error: "Playbook delivery is temporarily unavailable",
+          ...(isAdmin ? { detail } : {}),
+        };
+      }
+    }
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error(
+      "[playbook-leads] S3 HEAD check failed",
+      { key, ...envContext, error: detail },
+    );
+    deliveryError = {
+      error: "Playbook delivery is temporarily unavailable",
+      ...(isAdmin ? { detail } : {}),
+    };
   }
 
   const fullName = `${parsed.firstName} ${parsed.lastName}`.trim();
@@ -149,6 +193,23 @@ export async function POST(req: NextRequest) {
     } catch (err) {
       console.error("[playbook-leads] failed to update slack_status:", err);
     }
+
+    try {
+      await recordEvent("playbook", leadId, "created", {
+        industry_slug: parsed.industrySlug,
+        slack_status: slackResult,
+      }, "system");
+    } catch (err) {
+      console.error("[playbook-leads] failed to record creation event:", err);
+    }
+
+    // Best-effort BVI push: if it fails, the row is left bvi_sync_status='failed'
+    // and the cron retry job (or admin manual retry) will pick it up.
+    void safeSyncLeadToBvi("playbook", leadId, "system");
+  }
+
+  if (!presignedUrl) {
+    return NextResponse.json(deliveryError, { status: 503 });
   }
 
   return NextResponse.json({ ok: true, downloadUrl: presignedUrl });

@@ -1,12 +1,7 @@
 import { redirect } from "next/navigation";
-import { isAuthenticated } from "@/lib/auth";
-import { LeadsTable } from "@/components/admin/LeadsTable";
 
-export const dynamic = "force-dynamic";
-
-export default async function PlaybookLeadsPage() {
-  if (!(await isAuthenticated())) {
-    redirect("/admin/login");
-  }
-  return <LeadsTable />;
+// Legacy URL — superseded by /admin/playbook-leads. Keep this redirect so
+// existing bookmarks and Slack notifications continue to work.
+export default function LegacyLeadsRedirect() {
+  redirect("/admin/playbook-leads");
 }

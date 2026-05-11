@@ -39,7 +39,7 @@ Industry pages are configured via JSON files in `config/industries/<slug>.json`.
 | Variable | Description |
 |---|---|
 | `BD_API_KEY` | Brilliant Directories API key — sent as `X-Api-Key` header |
-| `ALERT_WEBHOOK_URL` | (Optional) Webhook URL for failure alerts — Slack, Discord, Make, Zapier, or any Slack-compatible webhook receiver |
+| `ALERT_WEBHOOK_URL` | (Optional) Slack incoming webhook URL for BD member-creation failure alerts. Slack is the only supported alert channel — this app does not send any email of its own |
 | `DATABASE_URL` | PostgreSQL connection string (auto-set by Replit) |
 | `ENABLE_BACKGROUND_RETRY` | Set to `true` to run the auto-retry scheduler in-process (dev/Replit). Leave unset in production and use the HTTP cron endpoint instead |
 | `CRON_SECRET` | Bearer token required to call `GET /api/cron/retry-submissions` |
@@ -47,7 +47,7 @@ Industry pages are configured via JSON files in `config/industries/<slug>.json`.
 ## Failure Alerting & Recovery
 When a BD member creation fails, the app:
 1. Writes the full applicant data + error detail to the `failed_submissions` table
-2. POSTs a Slack-compatible JSON alert to `ALERT_WEBHOOK_URL` if configured
+2. POSTs a Slack-formatted JSON alert to `ALERT_WEBHOOK_URL` (Slack is the only supported alert channel) if configured
 
 Admins can retry failed submissions via the admin dashboard (`/admin/applications`) or the cron endpoint. Successful retries mark the row as `resolved`.
 
