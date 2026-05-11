@@ -28,7 +28,8 @@ export function getS3Client(): S3Client {
   return client;
 }
 
-export const DEFAULT_PLAYBOOK_KEY = "playbooks/_default.pdf";
+export const DEFAULT_PLAYBOOK_KEY =
+  "Provider_Playbook_Business_Services_Professionals-2026.pdf";
 
 export async function uploadPlaybook(
   key: string,
