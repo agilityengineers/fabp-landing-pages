@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { loadIndustry, saveIndustry } from "@/lib/config";
-import { uploadPlaybook } from "@/lib/s3";
+import { uploadPlaybook, buildPlaybookKey } from "@/lib/s3";
 
 const MAX_BYTES = 25 * 1024 * 1024; // 25 MB
 
@@ -20,7 +20,7 @@ function buildKey(slug: string): string {
     .toISOString()
     .replace(/[-:]/g, "")
     .replace(/\.\d{3}Z$/, "Z");
-  return `playbooks/${slug}-${stamp}.pdf`;
+  return buildPlaybookKey(`playbooks/${slug}-${stamp}.pdf`);
 }
 
 export async function POST(

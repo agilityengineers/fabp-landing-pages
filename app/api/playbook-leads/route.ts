@@ -5,7 +5,7 @@ import { query } from "@/lib/db";
 import { loadIndustry } from "@/lib/config";
 import { postSlackBlockKit } from "@/lib/slack";
 import {
-  DEFAULT_PLAYBOOK_KEY,
+  getDefaultPlaybookKey,
   getPresignedDownloadUrl,
   objectExists,
 } from "@/lib/s3";
@@ -41,7 +41,7 @@ function resolvePlaybookKey(industrySlug: string): {
     // Fall through to default
   }
   return {
-    key: DEFAULT_PLAYBOOK_KEY,
+    key: getDefaultPlaybookKey(),
     fileName: "FABP-Provider-Playbook.pdf",
   };
 }
