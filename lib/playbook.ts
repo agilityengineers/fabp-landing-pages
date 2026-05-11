@@ -2,7 +2,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import type { Industry } from "@/config/schema";
 
-const MODEL = "claude-opus-4-7";
+const DEFAULT_MODEL = "claude-opus-4-5";
+const GENERATION_TIMEOUT_MS = 90_000;
+
+function getModel(): string {
+  return process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_MODEL;
+}
 
 function getClient() {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -125,30 +130,34 @@ export async function generatePlaybookSlots(
   const client = getClient();
   const userPrompt = buildUserPrompt(industry, notes);
 
+  const model = getModel();
   let lastError: unknown = null;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 8000,
-      system: SYSTEM_PROMPT,
-      messages: [
-        { role: "user", content: userPrompt },
-        ...(attempt > 0 && lastError
-          ? ([
-              {
-                role: "assistant" as const,
-                content: "Previous response failed validation.",
-              },
-              {
-                role: "user" as const,
-                content: `That output failed validation: ${
-                  lastError instanceof Error ? lastError.message : String(lastError)
-                }. Try again. Output ONLY valid JSON matching the schema.`,
-              },
-            ] as const)
-          : []),
-      ],
-    });
+    const response = await client.messages.create(
+      {
+        model,
+        max_tokens: 8000,
+        system: SYSTEM_PROMPT,
+        messages: [
+          { role: "user", content: userPrompt },
+          ...(attempt > 0 && lastError
+            ? ([
+                {
+                  role: "assistant" as const,
+                  content: "Previous response failed validation.",
+                },
+                {
+                  role: "user" as const,
+                  content: `That output failed validation: ${
+                    lastError instanceof Error ? lastError.message : String(lastError)
+                  }. Try again. Output ONLY valid JSON matching the schema.`,
+                },
+              ] as const)
+            : []),
+        ],
+      },
+      { timeout: GENERATION_TIMEOUT_MS },
+    );
 
     const block = response.content.find((c) => c.type === "text");
     if (!block || block.type !== "text") {

@@ -53,6 +53,20 @@ Admins can retry failed submissions via the admin dashboard (`/admin/application
 
 The auto-retry scheduler runs up to 3 attempts per failed submission. When all attempts are exhausted, a final webhook alert fires so admins know manual action is needed.
 
+## Provider Playbook Generation (PR #28)
+The `/admin/...` PlaybookPanel can generate a per-industry PDF via Anthropic + Puppeteer. Pipeline:
+1. Admin clicks Generate → `POST /api/playbook-generate` inserts a `playbook_jobs` row (`status='running'`) and returns 202 + `jobId`.
+2. In-process `runJob()` calls Anthropic (model from `ANTHROPIC_MODEL`, default `claude-opus-4-5`), renders the HTML template to PDF via Puppeteer, uploads to `s3://<bucket>/<prefix>/playbooks/drafts/<slug>-<jobId>.pdf`, marks the row `ready`.
+3. Admin polls `/api/playbook-jobs/[id]`, reviews the presigned draft, then `POST .../publish` copies the draft to a versioned key and writes the reference back into the industry config (`source: "generated"`).
+
+### Operational invariants (DO NOT BREAK)
+- **Single-worker model.** `runJob` is strictly in-process. The startup reaper in `instrumentation.ts` marks **every** `status='running'` row as `failed` at boot, with no age threshold, on the assumption that any row still `running` after a restart is necessarily orphaned. **If you ever scale to multiple Node workers, this reaper must be replaced with a heartbeat / worker-id check or it will kill live jobs on a co-worker restart.**
+- **Status-guarded UPDATEs.** Both terminal-state transitions in `app/api/playbook-generate/route.ts` use `WHERE id=$ AND status='running'` to prevent a late-completing worker from overwriting a row the watchdog already marked `failed`. Don't remove the guard.
+- **Hard timeout.** A 5-minute wall-clock ceiling wraps `runJob` so a wedged Anthropic/Puppeteer call cannot leave a row in `running` forever.
+
+### Required env vars (in addition to the table below)
+`ANTHROPIC_API_KEY`, `AWS_REGION`, `AWS_S3_BUCKET`, `AWS_S3_PREFIX` (optional), `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`. After deploying for the first time, run `npx tsx scripts/upload-default-playbook.ts <pdf>` to seed the fallback PDF at `<prefix>/playbooks/_default.pdf` — the form returns "playbook hasn't been uploaded yet" until that file exists.
+
 ## Running
 - Start: `npm run dev`
 - Type check: `npx tsc --noEmit`

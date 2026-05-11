@@ -71,6 +71,13 @@ export async function objectExists(key: string): Promise<boolean> {
   }
 }
 
+function encodeS3Key(key: string): string {
+  return key
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+}
+
 export async function copyObject(
   sourceKey: string,
   destKey: string,
@@ -79,11 +86,13 @@ export async function copyObject(
   await getS3Client().send(
     new CopyObjectCommand({
       Bucket: bucket,
-      CopySource: `/${bucket}/${encodeURIComponent(sourceKey)}`,
+      CopySource: `/${bucket}/${encodeS3Key(sourceKey)}`,
       Key: destKey,
     }),
   );
 }
+
+export const __testing = { encodeS3Key };
 
 export async function getPresignedDownloadUrl(
   key: string,

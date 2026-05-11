@@ -14,6 +14,33 @@ export async function register() {
       console.error("[DB] Schema initialisation failed:", err);
     }
 
+    // Stuck-job reaper: any playbook_jobs row in 'running' at boot must be
+    // an orphan, because runJob() is a strictly in-process worker — if the
+    // server is restarting now, that worker is dead. Mark every such row
+    // 'failed' unconditionally so the admin UI stops polling it.
+    // (Safe under single-worker assumption; if we ever move to multi-worker,
+    // this needs a worker-id / heartbeat check instead.)
+    try {
+      const result = await query(
+        `UPDATE playbook_jobs
+            SET status = 'failed',
+                error_message = COALESCE(error_message, $1),
+                completed_at = NOW()
+          WHERE status = 'running'
+          RETURNING id`,
+        [
+          "Marked failed by startup reaper (server restarted while job was running).",
+        ],
+      );
+      if (result.rowCount && result.rowCount > 0) {
+        console.log(
+          `[playbook-jobs] Reaper marked ${result.rowCount} orphaned job(s) as failed`,
+        );
+      }
+    } catch (err) {
+      console.error("[playbook-jobs] Stuck-job reaper failed:", err);
+    }
+
     // Validate that every industry config has a valid professionId so
     // missing mappings are surfaced at boot, not only on the first submission.
     try {
