@@ -2,7 +2,8 @@ import { MetadataRoute } from "next";
 import { listIndustries } from "@/lib/config";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? "https://findabusinesspro.com";
+  const base =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://fabp-landing-pages.replit.app";
   const industries = listIndustries().filter((i) => i.published);
 
   const industryUrls: MetadataRoute.Sitemap = industries.map((industry) => ({

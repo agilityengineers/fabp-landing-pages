@@ -29,8 +29,13 @@ export const metadata: Metadata = {
   description:
     "A category-exclusive listing in the directory business owners search when they need a trusted professional.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://invitation.findabusinesspro.com"
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://fabp-landing-pages.replit.app"
   ),
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
   icons: {
     icon: "/New-Favicon-2026_1777917096270.png",
     apple: "/New-Favicon-2026_1777917096270.png",
