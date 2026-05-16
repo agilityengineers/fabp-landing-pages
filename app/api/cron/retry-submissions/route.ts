@@ -8,11 +8,20 @@ import { runAutoRetry } from "@/lib/retry-scheduler";
  * or any HTTP cron) every 15 minutes to automatically retry failed BD member
  * creation submissions.
  *
- * Protected by a shared secret: the caller must supply the header
+ * Protected by a shared secret: the caller must supply either
  *   Authorization: Bearer <CRON_SECRET>
+ * or
+ *   x-cron-secret: <CRON_SECRET>
  * where CRON_SECRET is set in the environment.  If the variable is not
  * configured the endpoint is disabled so it cannot be called at all.
  */
+function authorized(req: NextRequest, secret: string): boolean {
+  const headerSecret = req.headers.get("x-cron-secret");
+  if (headerSecret && headerSecret === secret) return true;
+  const auth = req.headers.get("authorization") ?? "";
+  return auth === `Bearer ${secret}`;
+}
+
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
 
@@ -26,8 +35,7 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const authHeader = req.headers.get("authorization") ?? "";
-  if (authHeader !== `Bearer ${secret}`) {
+  if (!authorized(req, secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
