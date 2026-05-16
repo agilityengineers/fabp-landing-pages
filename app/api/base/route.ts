@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { loadBase, saveBase } from "@/lib/config";
 import { baseSchema } from "@/config/schema";
 import { isAuthenticated } from "@/lib/auth";
+import { requireSameOrigin } from "@/lib/csrf";
 
 export async function GET() {
   try {
@@ -15,6 +16,8 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

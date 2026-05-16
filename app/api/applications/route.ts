@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { submitApplication } from "@/lib/forms";
-import type { ApplicationData } from "@/lib/forms";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { requireSameOrigin } from "@/lib/csrf";
+
+const MAX_BODY_BYTES = 32 * 1024; // 32 KB — way more than any plausible form post
+
+const applicationSchema = z.object({
+  name: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().min(1).max(100),
+  company: z.string().trim().min(1).max(200),
+  state: z.string().trim().min(1).max(100),
+  email: z.string().trim().email().max(255),
+  phone: z.string().trim().max(50).optional(),
+  profession: z.string().trim().min(1).max(200),
+  city: z.string().trim().min(1).max(120),
+  years: z.string().trim().max(50).optional(),
+  website: z.string().trim().max(500).optional(),
+  spend: z.string().trim().max(100).optional(),
+  fit: z.string().trim().max(2000).optional(),
+  industrySlug: z.string().regex(/^[a-z0-9-]+$/).max(80),
+  submittedAt: z.string().datetime().optional(),
+  variant: z.enum(["control", "outcome", "explicit"]).optional(),
+});
 
 function clientIp(req: NextRequest): string | undefined {
   const forwarded = req.headers.get("x-forwarded-for");
@@ -9,24 +31,36 @@ function clientIp(req: NextRequest): string | undefined {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json() as ApplicationData;
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
 
-  if (
-    !body.name ||
-    !body.lastName ||
-    !body.company ||
-    !body.state ||
-    !body.email ||
-    !body.profession ||
-    !body.city
-  ) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  const limit = rateLimit(req, "applications", 5, 60_000);
+  if (!limit.ok) return rateLimitResponse(limit);
+
+  const len = Number(req.headers.get("content-length") ?? "0");
+  if (len > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+
+  let raw: unknown;
+  try {
+    raw = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const parsed = applicationSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid submission", issues: parsed.error.flatten() },
+      { status: 400 },
+    );
   }
 
   try {
     await submitApplication({
-      ...body,
-      submittedAt: body.submittedAt ?? new Date().toISOString(),
+      ...parsed.data,
+      submittedAt: parsed.data.submittedAt ?? new Date().toISOString(),
       userAgent: req.headers.get("user-agent") ?? undefined,
       ipAddress: clientIp(req),
     });

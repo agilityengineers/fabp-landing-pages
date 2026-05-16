@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { z } from "zod";
 import { query } from "@/lib/db";
 import { loadIndustry } from "@/lib/config";
@@ -7,10 +6,12 @@ import { generatePlaybookSlots } from "@/lib/playbook";
 import { buildPlaybookHtml } from "@/lib/playbook-template";
 import { renderHtmlToPdf } from "@/lib/pdf";
 import { uploadPlaybook, buildPlaybookKey } from "@/lib/s3";
+import { isAuthenticated } from "@/lib/auth";
+import { requireSameOrigin } from "@/lib/csrf";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 async function requireAuth(): Promise<boolean> {
-  const cookieStore = await cookies();
-  return cookieStore.get("admin-auth")?.value === "1";
+  return isAuthenticated();
 }
 
 const requestSchema = z.object({
@@ -99,9 +100,14 @@ async function runJob(jobId: number, slug: string, notes: string) {
 }
 
 export async function POST(req: NextRequest) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
   if (!(await requireAuth())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  // Generation kicks off Anthropic + Puppeteer + S3, so cap aggressively.
+  const limit = rateLimit(req, "playbook-generate", 5, 60_000);
+  if (!limit.ok) return rateLimitResponse(limit);
 
   let parsed: z.infer<typeof requestSchema>;
   try {

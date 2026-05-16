@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { uploadPlaybook, getDefaultPlaybookKey } from "@/lib/s3";
+import { isAuthenticated } from "@/lib/auth";
+import { requireSameOrigin } from "@/lib/csrf";
 
 const MAX_BYTES = 25 * 1024 * 1024;
 
-async function requireAuth(): Promise<boolean> {
-  const cookieStore = await cookies();
-  return cookieStore.get("admin-auth")?.value === "1";
-}
-
 export async function POST(req: NextRequest) {
-  if (!(await requireAuth())) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { z } from "zod";
 import { query } from "@/lib/db";
 import { loadIndustry } from "@/lib/config";
@@ -12,6 +11,11 @@ import {
 import { verifyTurnstile } from "@/lib/turnstile";
 import { recordEvent } from "@/lib/leads";
 import { safeSyncLeadToBvi } from "@/lib/bvi-sync";
+import { isAuthenticated } from "@/lib/auth";
+import { requireSameOrigin } from "@/lib/csrf";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
+
+const MAX_BODY_BYTES = 32 * 1024;
 
 const leadSchema = z.object({
   firstName: z.string().trim().min(1).max(100),
@@ -53,6 +57,17 @@ function clientIp(req: NextRequest): string | undefined {
 }
 
 export async function POST(req: NextRequest) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
+
+  const limit = rateLimit(req, "playbook-leads", 5, 60_000);
+  if (!limit.ok) return rateLimitResponse(limit);
+
+  const len = Number(req.headers.get("content-length") ?? "0");
+  if (len > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: "Payload too large" }, { status: 413 });
+  }
+
   let parsed: LeadInput;
   try {
     const body = await req.json();
@@ -108,8 +123,7 @@ export async function POST(req: NextRequest) {
 
   const { key, fileName } = resolvePlaybookKey(parsed.industrySlug);
 
-  const cookieStore = await cookies();
-  const isAdmin = cookieStore.get("admin-auth")?.value === "1";
+  const isAdmin = await isAuthenticated();
   const envContext = {
     awsRegion: process.env.AWS_REGION ? "set" : "unset",
     awsBucket: process.env.AWS_S3_BUCKET ? "set" : "unset",

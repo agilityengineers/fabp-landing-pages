@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { verifySessionTokenEdge } from "@/lib/auth-edge";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const needsAuth =
@@ -10,7 +11,8 @@ export function middleware(request: NextRequest) {
 
   if (needsAuth) {
     const auth = request.cookies.get("admin-auth");
-    if (!auth || auth.value !== "1") {
+    const ok = await verifySessionTokenEdge(auth?.value);
+    if (!ok) {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);

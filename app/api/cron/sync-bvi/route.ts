@@ -1,28 +1,36 @@
 /**
  * Background catch-up: re-pushes any leads whose bvi_sync_status is 'pending'
  * or 'failed'. Wire this to a Replit scheduled task (or any external cron) by
- * POSTing here with header `x-cron-secret: ${CRON_SECRET}`.
+ * POSTing here with header `x-cron-secret: ${CRON_SECRET}` (or
+ * `Authorization: Bearer ${CRON_SECRET}`).
  *
- * If CRON_SECRET is unset, the route falls back to the admin auth cookie so
- * humans can fire it from the dashboard during testing without setting up a
- * secret.
+ * Authentication is bearer-only — there is no admin-cookie fallback. To
+ * trigger a sync run from the admin dashboard, expose an admin endpoint
+ * (the per-lead "Re-sync to BVI" button at
+ * /api/admin/leads/[type]/[id]/sync-bvi already exists for one-off retries).
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { isAuthenticated } from "@/lib/auth";
 import { runBviSyncBatch } from "@/lib/bvi-sync";
 
-async function authorized(req: NextRequest): Promise<boolean> {
+function authorized(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
-  if (secret) {
-    const provided = req.headers.get("x-cron-secret");
-    if (provided && provided === secret) return true;
-  }
-  return await isAuthenticated();
+  if (!secret) return false;
+  const headerSecret = req.headers.get("x-cron-secret");
+  if (headerSecret && headerSecret === secret) return true;
+  const auth = req.headers.get("authorization") ?? "";
+  return auth === `Bearer ${secret}`;
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await authorized(req))) {
+  if (!process.env.CRON_SECRET) {
+    console.error("[cron/sync-bvi] CRON_SECRET is not set — endpoint is disabled");
+    return NextResponse.json(
+      { error: "Cron endpoint is not configured" },
+      { status: 503 },
+    );
+  }
+  if (!authorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const url = new URL(req.url);

@@ -42,7 +42,30 @@ Industry pages are configured via JSON files in `config/industries/<slug>.json`.
 | `ALERT_WEBHOOK_URL` | (Optional) Slack incoming webhook URL for BD member-creation failure alerts. Slack is the only supported alert channel — this app does not send any email of its own |
 | `DATABASE_URL` | PostgreSQL connection string (auto-set by Replit) |
 | `ENABLE_BACKGROUND_RETRY` | Set to `true` to run the auto-retry scheduler in-process (dev/Replit). Leave unset in production and use the HTTP cron endpoint instead |
-| `CRON_SECRET` | Bearer token required to call `GET /api/cron/retry-submissions` |
+| `CRON_SECRET` | Bearer token required by **both** cron endpoints (`/api/cron/retry-submissions` and `/api/cron/sync-bvi`). When unset, both endpoints return 503 and refuse to run — there is no admin-cookie fallback |
+| `ADMIN_PASSWORD` | Login password for the admin dashboard. **Required in production** — the app refuses to authenticate if unset in production |
+| `ADMIN_SESSION_SECRET` | (Optional, recommended) HMAC key used to sign the admin session cookie. Defaults to `ADMIN_PASSWORD` when unset. Generate with `openssl rand -hex 32` |
+| `ALLOWED_ORIGINS` | (Optional) Comma-separated extra origins (full URLs) allowed for state-changing admin requests, in addition to the request's own Host. Useful when the app is reached through multiple domains |
+
+## Authentication & CSRF
+- Admin auth uses an **HMAC-signed, opaque session cookie** (`admin-auth=<issuedAt>.<sha256-hmac>`). Setting `admin-auth=1` manually no longer grants access — the value is verified against the session secret on every request, including in the Edge middleware that protects `/admin/*` and `/preview/*`.
+- The cookie is `HttpOnly`, `SameSite=Strict`, and `Secure` in production. SameSite=Strict is the primary CSRF defense.
+- Login compares the password with `crypto.timingSafeEqual` (constant time) and refuses to authenticate at all when `ADMIN_PASSWORD` is missing in production.
+- All state-changing admin/public API routes also run a defense-in-depth `requireSameOrigin` check (Origin/Referer must match the request Host, or any extra entry in `ALLOWED_ORIGINS`).
+- Cron endpoints (`/api/cron/*`) are bearer-only — `x-cron-secret: <CRON_SECRET>` or `Authorization: Bearer <CRON_SECRET>`. They cannot be triggered with the admin cookie. For ad-hoc human-initiated runs, use the per-row admin endpoints (e.g. `/api/admin/leads/[type]/[id]/sync-bvi`).
+- `/api/auth/login` is rate-limited (10/min/IP) to slow brute-force guessing.
+
+## Rate Limiting
+Public POST endpoints have per-IP token-bucket throttling (`lib/rate-limit.ts`):
+- `/api/applications`: 5/min/IP
+- `/api/playbook-leads`: 5/min/IP (in addition to Cloudflare Turnstile)
+- `/api/playbook-generate`: 5/min/IP (caps Anthropic + Puppeteer cost)
+- `/api/auth/login`: 10/min/IP
+
+The buckets are **in-process**. On Replit autoscale (multiple Node instances) the effective limit is `limit × instanceCount` — still enough to stop loops and single-IP bursts, but not a substitute for an upstream WAF if you face determined abuse. Swap `lib/rate-limit.ts` for a DB/Redis-backed implementation if you need a global counter.
+
+## Input Validation & Payload Size
+Public POST endpoints validate the request body with a strict `zod` schema and enforce a 32 KB `Content-Length` cap. Malformed or oversized bodies return 400/413 with a safe error message.
 
 ## Failure Alerting & Recovery
 When a BD member creation fails, the app:

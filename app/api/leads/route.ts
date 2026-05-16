@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { query } from "@/lib/db";
+import { isAuthenticated } from "@/lib/auth";
 
 async function requireAuth(): Promise<boolean> {
-  const cookieStore = await cookies();
-  return cookieStore.get("admin-auth")?.value === "1";
+  return isAuthenticated();
 }
 
 export interface PlaybookLeadRow {

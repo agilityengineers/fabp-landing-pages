@@ -3,11 +3,11 @@ import path from "path";
 import { NextRequest, NextResponse } from "next/server";
 import { loadIndustry, listIndustries, saveIndustry, deleteIndustry } from "@/lib/config";
 import { industrySchema } from "@/config/schema";
-import { cookies } from "next/headers";
+import { isAuthenticated } from "@/lib/auth";
+import { requireSameOrigin } from "@/lib/csrf";
 
 async function requireAuth() {
-  const cookieStore = await cookies();
-  return cookieStore.get("admin-auth")?.value === "1";
+  return isAuthenticated();
 }
 
 export async function GET() {
@@ -16,6 +16,8 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
   if (!(await requireAuth())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -34,6 +36,8 @@ export async function PATCH(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
   if (!(await requireAuth())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -68,6 +72,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
   if (!(await requireAuth())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -187,6 +193,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
   if (!(await requireAuth())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

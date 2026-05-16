@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { regenerateSection } from "@/lib/claude";
 import { loadIndustry, saveIndustry } from "@/lib/config";
-import { cookies } from "next/headers";
+import { isAuthenticated } from "@/lib/auth";
+import { requireSameOrigin } from "@/lib/csrf";
 
 export async function POST(req: NextRequest) {
-  const cookieStore = await cookies();
-  if (cookieStore.get("admin-auth")?.value !== "1") {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
+  if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

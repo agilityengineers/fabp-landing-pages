@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { loadIndustry, saveIndustry } from "@/lib/config";
 import { uploadPlaybook, buildPlaybookKey } from "@/lib/s3";
+import { isAuthenticated } from "@/lib/auth";
+import { requireSameOrigin } from "@/lib/csrf";
 
 const MAX_BYTES = 25 * 1024 * 1024; // 25 MB
 
 async function requireAuth(): Promise<boolean> {
-  const cookieStore = await cookies();
-  return cookieStore.get("admin-auth")?.value === "1";
+  return isAuthenticated();
 }
 
 function sanitizeFilename(name: string): string {
@@ -27,6 +27,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
   if (!(await requireAuth())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -104,9 +106,11 @@ export async function POST(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
   if (!(await requireAuth())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

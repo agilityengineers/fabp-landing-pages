@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAuthenticated } from "@/lib/auth";
+import { requireSameOrigin } from "@/lib/csrf";
 import type { LeadType } from "@/lib/leads";
 import { syncLeadToBvi } from "@/lib/bvi-sync";
 
 const ALLOWED_TYPES = new Set<LeadType>(["playbook", "invitation"]);
 
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ type: string; id: string }> },
 ) {
+  const csrf = requireSameOrigin(req);
+  if (csrf) return csrf;
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
