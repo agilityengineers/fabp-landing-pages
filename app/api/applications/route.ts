@@ -3,26 +3,29 @@ import { z } from "zod";
 import { submitApplication } from "@/lib/forms";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { requireSameOrigin } from "@/lib/csrf";
+import { listSlugs } from "@/lib/config";
 
 const MAX_BODY_BYTES = 32 * 1024; // 32 KB — way more than any plausible form post
 
-const applicationSchema = z.object({
-  name: z.string().trim().min(1).max(100),
-  lastName: z.string().trim().min(1).max(100),
-  company: z.string().trim().min(1).max(200),
-  state: z.string().trim().min(1).max(100),
-  email: z.string().trim().email().max(255),
-  phone: z.string().trim().max(50).optional(),
-  profession: z.string().trim().min(1).max(200),
-  city: z.string().trim().min(1).max(120),
-  years: z.string().trim().max(50).optional(),
-  website: z.string().trim().max(500).optional(),
-  spend: z.string().trim().max(100).optional(),
-  fit: z.string().trim().max(2000).optional(),
-  industrySlug: z.string().regex(/^[a-z0-9-]+$/).max(80),
-  submittedAt: z.string().datetime().optional(),
-  variant: z.enum(["control", "outcome", "explicit"]).optional(),
-});
+const applicationSchema = z
+  .object({
+    name: z.string().trim().min(1).max(100),
+    lastName: z.string().trim().min(1).max(100),
+    company: z.string().trim().min(1).max(200),
+    state: z.string().trim().min(1).max(100),
+    email: z.string().trim().email().max(255),
+    phone: z.string().trim().max(50).optional(),
+    profession: z.string().trim().min(1).max(200),
+    city: z.string().trim().min(1).max(120),
+    years: z.string().trim().max(50).optional(),
+    website: z.string().trim().max(500).optional(),
+    spend: z.string().trim().max(100).optional(),
+    fit: z.string().trim().max(2000).optional(),
+    industrySlug: z.string().regex(/^[a-z0-9-]+$/).max(80),
+    submittedAt: z.string().datetime().optional(),
+    variant: z.enum(["control", "outcome", "explicit"]).optional(),
+  })
+  .strict();
 
 function clientIp(req: NextRequest): string | undefined {
   const forwarded = req.headers.get("x-forwarded-for");
@@ -53,6 +56,13 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid submission", issues: parsed.error.flatten() },
+      { status: 400 },
+    );
+  }
+
+  if (!listSlugs().includes(parsed.data.industrySlug)) {
+    return NextResponse.json(
+      { error: "Unknown industry" },
       { status: 400 },
     );
   }

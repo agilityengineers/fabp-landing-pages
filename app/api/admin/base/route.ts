@@ -9,6 +9,9 @@ async function requireAuth() {
 }
 
 export async function GET() {
+  if (!(await requireAuth())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const base = loadBase();
   return NextResponse.json(base);
 }

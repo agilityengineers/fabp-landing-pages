@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { query } from "@/lib/db";
-import { loadIndustry } from "@/lib/config";
+import { loadIndustry, listSlugs } from "@/lib/config";
 import { postSlackBlockKit } from "@/lib/slack";
 import {
   getDefaultPlaybookKey,
@@ -17,15 +17,17 @@ import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const MAX_BODY_BYTES = 32 * 1024;
 
-const leadSchema = z.object({
-  firstName: z.string().trim().min(1).max(100),
-  lastName: z.string().trim().min(1).max(100),
-  email: z.string().trim().email().max(255),
-  phone: z.string().trim().min(7).max(50),
-  consent: z.literal(true),
-  industrySlug: z.string().regex(/^[a-z0-9-]+$/),
-  turnstileToken: z.string().optional(),
-});
+const leadSchema = z
+  .object({
+    firstName: z.string().trim().min(1).max(100),
+    lastName: z.string().trim().min(1).max(100),
+    email: z.string().trim().email().max(255),
+    phone: z.string().trim().min(7).max(50),
+    consent: z.literal(true),
+    industrySlug: z.string().regex(/^[a-z0-9-]+$/).max(80),
+    turnstileToken: z.string().max(4096).optional(),
+  })
+  .strict();
 
 type LeadInput = z.infer<typeof leadSchema>;
 
@@ -80,6 +82,10 @@ export async function POST(req: NextRequest) {
       },
       { status: 400 },
     );
+  }
+
+  if (!listSlugs().includes(parsed.industrySlug)) {
+    return NextResponse.json({ error: "Unknown industry" }, { status: 400 });
   }
 
   const ip = clientIp(req);
