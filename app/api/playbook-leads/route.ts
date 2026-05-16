@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
       };
     } else {
       try {
-        presignedUrl = await getPresignedDownloadUrl(key, fileName, 300);
+        presignedUrl = await getPresignedDownloadUrl(key, fileName);
       } catch (err) {
         const detail = err instanceof Error ? err.message : String(err);
         console.error(

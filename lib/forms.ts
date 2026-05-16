@@ -265,6 +265,18 @@ export async function sendFailureAlert(
   }
 }
 
+// Redact PII from an arbitrary BD response body before logging to stdout.
+// BD echoes the submitted name/email back in success responses, which end up
+// in deployment log aggregators if we log the raw body. We only need the
+// returned user_id for ops; everything else can be summarized as a length.
+function redactBdBody(text: string): string {
+  if (!text) return "<empty>";
+  const userId = extractBdUserId(text);
+  return userId
+    ? `<bd response: user_id=${userId}, ${text.length}B>`
+    : `<bd response: ${text.length}B>`;
+}
+
 function extractBdUserId(text: string): string | null {
   try {
     const parsed = JSON.parse(text) as Record<string, unknown>;
@@ -282,6 +294,8 @@ function extractBdUserId(text: string): string | null {
 }
 
 export async function submitApplication(data: ApplicationData): Promise<void> {
+  // Submission log: NO PII (no name, email, phone, company). The lead is
+  // persisted to invitation_leads where authorized admins can look it up.
   console.log("[FABP Application] received submission", {
     profession: data.profession,
     city: data.city,
@@ -343,46 +357,173 @@ export async function submitApplication(data: ApplicationData): Promise<void> {
     return;
   }
 
-  const tempPassword = generateTempPassword();
-  const body = new URLSearchParams(
-    buildBdFields(data, tempPassword, professionId)
-  ).toString();
+  // Race-safe idempotency. Two near-simultaneous submits for the same email
+  // (double-click, retry on flaky network, two open tabs) must not both
+  // create a BD account, because BD would issue two different temp passwords
+  // and invalidate the first welcome email. We serialize all submits for the
+  // same email through a Postgres session-level advisory lock keyed on the
+  // hashed lowercased email. The lock is held across the dedupe check AND
+  // the BD POST, so the second submitter blocks until the first either
+  // creates the account or fails — then sees the prior `bd_status='created'`
+  // row in its own dedupe check and no-ops cleanly.
+  //
+  // hashtextextended is a stable PG hash that fits int8 — exactly what
+  // pg_advisory_lock(bigint) wants. We don't care about hash collisions
+  // beyond "two unrelated emails very rarely serialize together for a
+  // second", which is fine.
+  const emailLockKey = data.email.toLowerCase();
+  await withClient(async (client) => {
+    await client.query(`SELECT pg_advisory_lock(hashtextextended($1, 0))`, [
+      emailLockKey,
+    ]);
+    try {
+      const dup = await client.query(
+        `SELECT id, bd_user_id
+           FROM invitation_leads
+          WHERE LOWER(email) = LOWER($1)
+            AND bd_status = 'created'
+            AND created_at > NOW() - INTERVAL '10 minutes'
+            AND (id IS DISTINCT FROM $2)
+          ORDER BY created_at DESC
+          LIMIT 1`,
+        [data.email, invitationLeadId],
+      );
+      if (dup.rowCount && dup.rowCount > 0) {
+        const prior = dup.rows[0] as { id: number; bd_user_id: string | null };
+        console.log(
+          `[BD] Idempotent skip — duplicate submit for same email in last 10min ` +
+            `(prior invitation_lead=${prior.id}, bd_user_id=${prior.bd_user_id ?? "?"})`,
+        );
+        if (invitationLeadId) {
+          await updateInvitationLeadBd(invitationLeadId, {
+            bd_status: "created",
+            bd_user_id: prior.bd_user_id,
+          });
+          await recordEvent(
+            "invitation",
+            invitationLeadId,
+            "bd_skipped_duplicate",
+            { prior_lead_id: prior.id, bd_user_id: prior.bd_user_id },
+            "system",
+          );
+        }
+        return;
+      }
 
-  try {
-    const res = await fetch(BD_API_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-Api-Key": apiKey,
-        "accept": "application/json",
-      },
-      body,
-    });
+      const tempPassword = generateTempPassword();
+      const body = new URLSearchParams(
+        buildBdFields(data, tempPassword, professionId),
+      ).toString();
 
-    const text = await res.text();
-
-    if (!res.ok) {
-      const errorDetail = `HTTP ${res.status}: ${text}`;
-      console.error(`[BD] Member creation failed: ${errorDetail}`);
-      await handleBdFailure(errorDetail);
-    } else {
-      console.log("[BD] Member created successfully", text);
-      const bdUserId = extractBdUserId(text);
-      if (invitationLeadId) {
-        await updateInvitationLeadBd(invitationLeadId, {
-          bd_status: "created",
-          bd_user_id: bdUserId,
+      try {
+        const res = await fetch(BD_API_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-Api-Key": apiKey,
+            "accept": "application/json",
+          },
+          body,
         });
-        await recordEvent("invitation", invitationLeadId, "bd_created", {
-          bd_user_id: bdUserId,
-        }, "system");
+        const text = await res.text();
+        if (!res.ok) {
+          // Persist the full response body to failed_submissions.error_detail
+          // (private DB column), but only the status + redacted summary
+          // reaches stdout / log aggregators.
+          const errorDetailForDb = `HTTP ${res.status}: ${text}`;
+          console.error(
+            `[BD] Member creation failed: HTTP ${res.status} ${redactBdBody(text)}`,
+          );
+          await handleBdFailure(errorDetailForDb);
+        } else {
+          console.log("[BD] Member created successfully", redactBdBody(text));
+          const bdUserId = extractBdUserId(text);
+          if (invitationLeadId) {
+            // Write the bd_status='created' marker on the SAME locked
+            // client and HARD-FAIL on error. This is the dedupe sentinel
+            // the next concurrent submit will check; if it isn't written,
+            // a subsequent submit within 10 min could double-create the
+            // BD account. We accept a thrown error here over a silent
+            // swallow — the caller sees a 500 and an operator can
+            // reconcile manually rather than discovering a duplicate.
+            try {
+              await client.query(
+                `UPDATE invitation_leads
+                    SET bd_status = 'created',
+                        bd_user_id = $1,
+                        bd_error = NULL,
+                        failed_submission_id = NULL,
+                        updated_at = NOW()
+                  WHERE id = $2`,
+                [bdUserId, invitationLeadId],
+              );
+            } catch (err) {
+              console.error(
+                `[BD] CRITICAL: BD account ${bdUserId ?? "?"} was created ` +
+                  `but invitation_leads.bd_status update FAILED for lead ` +
+                  `${invitationLeadId}. A duplicate submit within 10min could ` +
+                  `create a second BD account. Manually run: UPDATE ` +
+                  `invitation_leads SET bd_status='created', bd_user_id=` +
+                  `'${bdUserId ?? ""}' WHERE id=${invitationLeadId};`,
+                err,
+              );
+              // Re-throw a marker error that the OUTER catch must NOT
+              // swallow — this is an invariant breach (BD created, dedupe
+              // sentinel unwritten), not an ordinary BD failure. Letting
+              // it propagate forces /api/applications to return 500 so an
+              // operator notices and reconciles, rather than us silently
+              // pretending the submit succeeded.
+              const fatal = new Error(
+                `BD_SENTINEL_WRITE_FAILED:lead=${invitationLeadId},bd_user_id=${bdUserId ?? "?"}`,
+              );
+              (fatal as Error & { __invariantBreach?: boolean }).__invariantBreach = true;
+              throw fatal;
+            }
+            // Activity event is best-effort — it's not a dedupe sentinel
+            // and a missed event row won't allow duplicate BD creates.
+            try {
+              await recordEvent(
+                "invitation",
+                invitationLeadId,
+                "bd_created",
+                { bd_user_id: bdUserId },
+                "system",
+              );
+            } catch (err) {
+              console.error(
+                `[BD] non-fatal: lead_events insert failed for lead ${invitationLeadId}`,
+                err,
+              );
+            }
+          }
+        }
+      } catch (err) {
+        // Never swallow an invariant breach — see the sentinel-write
+        // CRITICAL log above. Let it propagate so the API responds 500
+        // and an operator is forced to reconcile the orphaned BD account.
+        if (
+          err &&
+          typeof err === "object" &&
+          (err as { __invariantBreach?: boolean }).__invariantBreach
+        ) {
+          throw err;
+        }
+        const errorDetail = err instanceof Error ? err.message : String(err);
+        console.error("[BD] Member creation error:", err);
+        await handleBdFailure(`Network/unexpected error: ${errorDetail}`);
+      }
+    } finally {
+      // Always release the advisory lock, even if the BD path threw.
+      try {
+        await client.query(
+          `SELECT pg_advisory_unlock(hashtextextended($1, 0))`,
+          [emailLockKey],
+        );
+      } catch (err) {
+        console.error("[BD] Failed to release email advisory lock:", err);
       }
     }
-  } catch (err) {
-    const errorDetail = err instanceof Error ? err.message : String(err);
-    console.error("[BD] Member creation error:", err);
-    await handleBdFailure(`Network/unexpected error: ${errorDetail}`);
-  }
+  });
 
   if (invitationLeadId) void safeSyncLeadToBvi("invitation", invitationLeadId);
 }
@@ -436,18 +577,37 @@ export async function retryFailedSubmission(id: number): Promise<void> {
   }
 
   // Atomically claim the row by flipping status pending → processing.
-  // If another request already claimed it, this returns no rows and we bail.
+  // We hold a row-level lock with `FOR UPDATE SKIP LOCKED` so two concurrent
+  // workers (auto-retry scheduler tick + admin "Retry" click, or two cron
+  // pods if this ever stops being a single-VM deploy) can never both flip
+  // the same row — the second worker sees zero rows and bails out cleanly
+  // instead of double-posting the applicant to Brilliant Directories.
   const claimResult = await withClient(async (client) => {
     await client.query("BEGIN");
-    const res = await client.query(
-      `UPDATE failed_submissions
-       SET status = 'processing', retry_count = retry_count + 1
-       WHERE id = $1 AND status = 'pending'
-       RETURNING *`,
-      [id]
-    );
-    await client.query("COMMIT");
-    return res;
+    try {
+      const locked = await client.query(
+        `SELECT id FROM failed_submissions
+          WHERE id = $1 AND status = 'pending'
+          FOR UPDATE SKIP LOCKED`,
+        [id],
+      );
+      if (locked.rowCount === 0) {
+        await client.query("ROLLBACK");
+        return { rows: [], rowCount: 0 } as { rows: Record<string, unknown>[]; rowCount: number };
+      }
+      const res = await client.query(
+        `UPDATE failed_submissions
+            SET status = 'processing', retry_count = retry_count + 1
+          WHERE id = $1
+          RETURNING *`,
+        [id],
+      );
+      await client.query("COMMIT");
+      return res;
+    } catch (err) {
+      await client.query("ROLLBACK");
+      throw err;
+    }
   });
 
   if (claimResult.rows.length === 0) {
@@ -474,58 +634,93 @@ export async function retryFailedSubmission(id: number): Promise<void> {
     submittedAt: row.submitted_at,
   };
 
-  const professionId = getProfessionId(data.industrySlug);
-  if (typeof professionId !== "number") {
-    throw new Error(
-      `No valid professionId found for industrySlug "${data.industrySlug}" — cannot retry`
-    );
-  }
-
-  const tempPassword = generateTempPassword();
-  const body = new URLSearchParams(
-    buildBdFields(data, tempPassword, professionId)
-  ).toString();
-
+  // Whatever happens after the claim — fetch failure, validation failure,
+  // assertion, anything — the row must NOT stay in 'processing' forever.
+  // We pin it back to 'pending' (with the new error_detail) on any throw
+  // so the next scheduler tick can pick it up again.
   let succeeded = false;
   let errorDetail: string | null = null;
   let responseText = "";
 
   try {
-    const res = await fetch(BD_API_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "X-Api-Key": apiKey,
-        "accept": "application/json",
-      },
-      body,
-    });
-    responseText = await res.text();
-    if (!res.ok) {
-      errorDetail = `HTTP ${res.status}: ${responseText}`;
+    const professionId = getProfessionId(data.industrySlug);
+    if (typeof professionId !== "number") {
+      errorDetail =
+        `No valid professionId found for industrySlug "${data.industrySlug}" — cannot retry`;
     } else {
-      succeeded = true;
+      const tempPassword = generateTempPassword();
+      const body = new URLSearchParams(
+        buildBdFields(data, tempPassword, professionId),
+      ).toString();
+
+      try {
+        const res = await fetch(BD_API_ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-Api-Key": apiKey,
+            "accept": "application/json",
+          },
+          body,
+        });
+        responseText = await res.text();
+        if (!res.ok) {
+          errorDetail = `HTTP ${res.status}: ${responseText}`;
+        } else {
+          succeeded = true;
+        }
+      } catch (err) {
+        errorDetail = `Network/unexpected error: ${err instanceof Error ? err.message : String(err)}`;
+      }
     }
   } catch (err) {
-    errorDetail = `Network/unexpected error: ${err instanceof Error ? err.message : String(err)}`;
+    // Defensive: any unexpected throw above (e.g. config-loading exception)
+    // is captured here so the cleanup branch runs.
+    errorDetail = `Unexpected retry error: ${err instanceof Error ? err.message : String(err)}`;
   }
 
   if (succeeded) {
     await query(
       `UPDATE failed_submissions
        SET status = 'resolved', resolved_at = NOW()
-       WHERE id = $1`,
-      [id]
+       WHERE id = $1 AND status = 'processing'`,
+      [id],
     );
-    console.log(`[BD] Retry for submission ${id} succeeded`, responseText);
-  } else {
-    // Roll the row back to pending so it can be retried again later.
+    console.log(
+      `[BD] Retry for submission ${id} succeeded`,
+      redactBdBody(responseText),
+    );
+    return;
+  }
+
+  // Persist the full error_detail (may include BD body) into the DB column
+  // so admins can inspect it via the dashboard, but throw / log only a
+  // redacted version so the BD body doesn't end up in stdout / external
+  // log aggregators.
+  const redactedDetail = errorDetail
+    ? errorDetail.startsWith("HTTP ")
+      ? `${errorDetail.split(":")[0]} ${redactBdBody(responseText)}`
+      : errorDetail.length > 200
+      ? `${errorDetail.slice(0, 200)}…`
+      : errorDetail
+    : "Unknown error";
+
+  try {
     await query(
       `UPDATE failed_submissions
        SET status = 'pending', error_detail = $1
-       WHERE id = $2`,
-      [errorDetail, id]
+       WHERE id = $2 AND status = 'processing'`,
+      [errorDetail, id],
     );
-    throw new Error(errorDetail!);
+  } catch (err) {
+    // Even reset failed — log loudly so an operator can manually flip the
+    // row back to 'pending' before the watchdog window expires.
+    console.error(
+      `[BD] CRITICAL: failed_submissions row ${id} may be stuck in 'processing' ` +
+        `because the cleanup UPDATE itself errored. Manually run: ` +
+        `UPDATE failed_submissions SET status='pending' WHERE id=${id} AND status='processing'.`,
+      err,
+    );
   }
+  throw new Error(redactedDetail);
 }

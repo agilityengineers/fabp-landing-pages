@@ -23,6 +23,7 @@ A Next.js application that collects professional membership applications and cre
 Industry pages are configured via JSON files in `config/industries/<slug>.json`. Each file must include a `professionId` field matching the numeric BD category ID. No code changes are needed to add a new industry page — just add a config file. Run `npm run validate:configs` to check all configs before deploying.
 
 ## Database
+- **Connection pool** (`lib/db.ts`): `max=10`, `idleTimeoutMillis=30s`, `connectionTimeoutMillis=10s`. Override with `PG_POOL_MAX`, `PG_POOL_IDLE_TIMEOUT_MS`, `PG_POOL_CONNECTION_TIMEOUT_MS`. A slow query can no longer starve the pool indefinitely — a handshake hang fails the request in ≤10s instead of hanging forever.
 - **Table**: `failed_submissions` — stores every failed BD API call with full applicant data, error details, status (`pending`/`processing`/`resolved`/`dismissed`), and retry count.
 - **Admin API**:
   - `GET /api/admin/failed-submissions` — list all failed submissions (optional `?status=` filter)
@@ -46,6 +47,10 @@ Industry pages are configured via JSON files in `config/industries/<slug>.json`.
 | `ADMIN_PASSWORD` | Login password for the admin dashboard. **Required in production** — the app refuses to authenticate if unset in production |
 | `ADMIN_SESSION_SECRET` | (Optional, recommended) HMAC key used to sign the admin session cookie. Defaults to `ADMIN_PASSWORD` when unset. Generate with `openssl rand -hex 32` |
 | `ALLOWED_ORIGINS` | (Optional) Comma-separated extra origins (full URLs) allowed for state-changing admin requests, in addition to the request's own Host. Useful when the app is reached through multiple domains |
+| `PG_POOL_MAX` | (Optional) Maximum number of PG client connections held by the pool. Default `10`. Raise only after measuring DB-side connection headroom |
+| `PG_POOL_IDLE_TIMEOUT_MS` | (Optional) ms an idle pool connection lives before being recycled. Default `30000` |
+| `PG_POOL_CONNECTION_TIMEOUT_MS` | (Optional) ms to wait for a new PG connection before throwing. Default `10000` |
+| `PLAYBOOK_PRESIGN_TTL_SECONDS` | (Optional) TTL for the S3 presigned URL handed back to playbook leads and admins. Default `3600` (1 hour). Clamped to `[60, 21600]` |
 
 ## Authentication & CSRF
 - Admin auth uses an **HMAC-signed, opaque session cookie** (`admin-auth=<issuedAt>.<sha256-hmac>`). Setting `admin-auth=1` manually no longer grants access — the value is verified against the session secret on every request, including in the Edge middleware that protects `/admin/*` and `/preview/*`.
@@ -66,6 +71,14 @@ The buckets are **in-process**. On Replit autoscale (multiple Node instances) th
 
 ## Input Validation & Payload Size
 Public POST endpoints validate the request body with a strict `zod` schema and enforce a 32 KB `Content-Length` cap. Malformed or oversized bodies return 400/413 with a safe error message.
+
+## Observability & Health
+- `GET /api/health` (admin-only — returns 401 without the admin session cookie) reports DB connectivity, pool stats (`total`/`idle`/`waiting`/`max`), and counts of `failed_submissions` and `playbook_jobs` by status. Returns 503 if the DB ping fails. Use it as the single dashboard query for "what's stuck right now".
+- BD request/response bodies are **never** logged to stdout in full. `lib/forms.ts` logs only `HTTP status` + redacted summary (`<bd response: user_id=…, NB>`); the full error body is persisted to `failed_submissions.error_detail` where it stays inside the database, not the deployment log aggregator.
+- Submission entry log carries no PII — only `profession`, `city`, `state`, `industrySlug`, `variant`, `submittedAt`. Look up `invitation_leads` by id for the rest.
+
+## Submission Idempotency
+`submitApplication` (`lib/forms.ts`) checks `invitation_leads` for any `bd_status='created'` row with the **same lowercased email** in the last **10 minutes** before POSTing to BD. If found, the second submit is a no-op: the new `invitation_leads` row inherits the prior `bd_user_id`, a `bd_skipped_duplicate` event is recorded, and BD is not called again — so a user who double-clicks Submit, an auto-retrying browser, or two tabs open at once cannot end up with two BD accounts (and two different welcome emails with different temp passwords).
 
 ## Failure Alerting & Recovery
 When a BD member creation fails, the app:

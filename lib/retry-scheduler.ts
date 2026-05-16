@@ -79,6 +79,8 @@ export async function runAutoRetry(): Promise<{
         );
       } catch (err) {
         failed++;
+        // retryFailedSubmission already redacts the thrown error message, so
+        // it's safe to surface in the scheduler log.
         const msg = err instanceof Error ? err.message : String(err);
         const newCount = retry_count + 1;
         console.warn(

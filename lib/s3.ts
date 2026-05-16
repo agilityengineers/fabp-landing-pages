@@ -94,10 +94,28 @@ export async function copyObject(
 
 export const __testing = { encodeS3Key };
 
+// Default presign TTL for playbook downloads. 1h is a sensible balance
+// between "user can still open the link from their email/notes later" and
+// "old links don't keep working indefinitely". Override per-environment via
+// PLAYBOOK_PRESIGN_TTL_SECONDS (range clamped to [60, 6h] to avoid mis-config
+// generating links that expire instantly or last all day).
+const DEFAULT_PRESIGN_TTL_SECONDS = 3600;
+const MIN_PRESIGN_TTL_SECONDS = 60;
+const MAX_PRESIGN_TTL_SECONDS = 6 * 60 * 60;
+
+export function getDefaultPresignTtlSeconds(): number {
+  const raw = Number(process.env.PLAYBOOK_PRESIGN_TTL_SECONDS);
+  if (!Number.isFinite(raw) || raw <= 0) return DEFAULT_PRESIGN_TTL_SECONDS;
+  return Math.min(
+    MAX_PRESIGN_TTL_SECONDS,
+    Math.max(MIN_PRESIGN_TTL_SECONDS, Math.floor(raw)),
+  );
+}
+
 export async function getPresignedDownloadUrl(
   key: string,
   fileName: string,
-  ttlSeconds = 300,
+  ttlSeconds: number = getDefaultPresignTtlSeconds(),
 ): Promise<string> {
   const safeName = fileName.replace(/[^A-Za-z0-9._-]+/g, "_");
   const cmd = new GetObjectCommand({

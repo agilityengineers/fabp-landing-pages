@@ -56,7 +56,6 @@ export async function GET(
       draftUrl = await getPresignedDownloadUrl(
         row.draft_s3_key,
         `playbook-${row.industry_slug}-draft.pdf`,
-        300,
       );
     } catch (err) {
       console.error(
