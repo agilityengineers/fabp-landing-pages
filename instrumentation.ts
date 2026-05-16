@@ -1,7 +1,64 @@
 const AUTO_RETRY_INTERVAL_MS = 15 * 60 * 1_000; // 15 minutes
 
+// Secrets that must be present in production. Missing values are logged
+// loudly at boot so the operator notices before a request handler fails.
+// "Required" means: a feature that the live deployment depends on will
+// crash or silently misbehave without it.
+const REQUIRED_PROD_SECRETS = [
+  "BD_API_KEY",
+  "DATABASE_URL",
+  "ADMIN_PASSWORD",
+  "CRON_SECRET",
+  "ANTHROPIC_API_KEY",
+  "AWS_REGION",
+  "AWS_S3_BUCKET",
+  "AWS_ACCESS_KEY_ID",
+  "AWS_SECRET_ACCESS_KEY",
+] as const;
+
+const RECOMMENDED_PROD_SECRETS = [
+  "ADMIN_SESSION_SECRET",
+  "ALERT_WEBHOOK_URL",
+  "PLAYBOOK_SLACK_WEBHOOK_URL",
+  "TURNSTILE_SECRET_KEY",
+  "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
+  "BVI_WEBHOOK_SECRET",
+] as const;
+
+function validateProductionSecrets() {
+  if (process.env.NODE_ENV !== "production") return;
+  const missingRequired = REQUIRED_PROD_SECRETS.filter((k) => !process.env[k]);
+  const missingRecommended = RECOMMENDED_PROD_SECRETS.filter(
+    (k) => !process.env[k],
+  );
+  if (missingRequired.length > 0) {
+    console.error(
+      `[startup] FATAL: missing required production secrets: ${missingRequired.join(
+        ", ",
+      )}. Features depending on these will fail. Set them in the deployment ` +
+        `Secrets tab before the next restart.`,
+    );
+  }
+  if (missingRecommended.length > 0) {
+    console.warn(
+      `[startup] WARNING: missing recommended production secrets: ${missingRecommended.join(
+        ", ",
+      )}. Related features are degraded or disabled.`,
+    );
+  }
+  if (process.env.ENABLE_BACKGROUND_RETRY === "true") {
+    console.warn(
+      "[startup] WARNING: ENABLE_BACKGROUND_RETRY=true in production. The in-process " +
+        "retry loop will run alongside any external cron and may double-process submissions. " +
+        "Prefer the /api/cron/retry-submissions HTTP cron in production.",
+    );
+  }
+}
+
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
+    validateProductionSecrets();
+
     const { query } = await import("@/lib/db");
     const { readFileSync } = await import("fs");
     const { join } = await import("path");
@@ -15,11 +72,15 @@ export async function register() {
     }
 
     // Stuck-job reaper: any playbook_jobs row in 'running' at boot must be
-    // an orphan, because runJob() is a strictly in-process worker — if the
-    // server is restarting now, that worker is dead. Mark every such row
-    // 'failed' unconditionally so the admin UI stops polling it.
-    // (Safe under single-worker assumption; if we ever move to multi-worker,
-    // this needs a worker-id / heartbeat check instead.)
+    // an orphan, because runJob() is a strictly in-process worker. The
+    // deployment target is a SINGLE reserved-VM instance (see .replit and
+    // replit.md "Deployment shape") precisely so this assumption holds —
+    // a restart means the worker is dead, full stop.
+    //
+    // DO NOT switch the deployment to autoscale without first replacing
+    // this with a worker-id / heartbeat check. On autoscale, a fresh
+    // instance booting will mark every other instance's live jobs as
+    // failed, dropping work mid-render.
     try {
       const result = await query(
         `UPDATE playbook_jobs

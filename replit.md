@@ -83,12 +83,18 @@ The `/admin/...` PlaybookPanel can generate a per-industry PDF via Anthropic + P
 3. Admin polls `/api/playbook-jobs/[id]`, reviews the presigned draft, then `POST .../publish` copies the draft to a versioned key and writes the reference back into the industry config (`source: "generated"`).
 
 ### Operational invariants (DO NOT BREAK)
-- **Single-worker model.** `runJob` is strictly in-process. The startup reaper in `instrumentation.ts` marks **every** `status='running'` row as `failed` at boot, with no age threshold, on the assumption that any row still `running` after a restart is necessarily orphaned. **If you ever scale to multiple Node workers, this reaper must be replaced with a heartbeat / worker-id check or it will kill live jobs on a co-worker restart.**
+- **Single-worker model.** `runJob` is strictly in-process. The startup reaper in `instrumentation.ts` marks **every** `status='running'` row as `failed` at boot, with no age threshold, on the assumption that any row still `running` after a restart is necessarily orphaned. This is only safe because the deployment is a **single reserved-VM instance** (see [Deployment](#deployment) below). **If you ever switch the deployment to `autoscale`, this reaper must be replaced with a heartbeat / worker-id check or a freshly booting instance will kill jobs another instance is actively running.**
 - **Status-guarded UPDATEs.** Both terminal-state transitions in `app/api/playbook-generate/route.ts` use `WHERE id=$ AND status='running'` to prevent a late-completing worker from overwriting a row the watchdog already marked `failed`. Don't remove the guard.
 - **Hard timeout.** A 5-minute wall-clock ceiling wraps `runJob` so a wedged Anthropic/Puppeteer call cannot leave a row in `running` forever.
 
 ### Required env vars (in addition to the table below)
 `ANTHROPIC_API_KEY`, `AWS_REGION`, `AWS_S3_BUCKET`, `AWS_S3_PREFIX` (optional), `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`. After deploying for the first time, run `npx tsx scripts/upload-default-playbook.ts <pdf>` to seed the fallback PDF at `<prefix>/playbooks/_default.pdf` — the form returns "playbook hasn't been uploaded yet" until that file exists.
+
+## Deployment
+- **Target:** reserved-VM, **single instance** (`.replit` -> `[deployment] deploymentTarget = "vm"`). Do NOT change to `autoscale` without first replacing the playbook-jobs startup reaper with a heartbeat/worker-id check, and migrating the in-memory rate-limit buckets and the in-process retry single-flight guard to a shared store (DB/Redis).
+- **Chromium for Puppeteer:** the `chromium` nix package is provisioned via `replit.nix` (`pkgs.chromium`). Puppeteer's own bundled Chromium cannot launch on Replit's NixOS containers, so `lib/pdf.ts` launches the system Chromium via `executablePath` (resolved from `PUPPETEER_EXECUTABLE_PATH` or the `chromium` binary on PATH). To pin a specific binary in the deploy, set `PUPPETEER_EXECUTABLE_PATH` in the deployment Secrets.
+- **Retry scheduler in production:** leave `ENABLE_BACKGROUND_RETRY` unset and use the HTTP cron path (`POST /api/cron/retry-submissions` with `Authorization: Bearer $CRON_SECRET` or `x-cron-secret: $CRON_SECRET`). Setting both at once causes double-processing — `instrumentation.ts` logs a WARNING if it sees `ENABLE_BACKGROUND_RETRY=true` in production.
+- **Startup secret check:** in production (`NODE_ENV=production`), `instrumentation.ts` logs a loud `[startup] FATAL` line listing any missing required secrets (BD_API_KEY, DATABASE_URL, ADMIN_PASSWORD, CRON_SECRET, ANTHROPIC_API_KEY, AWS_*) and a `[startup] WARNING` for missing recommended ones. The server still boots so it can serve a status page, but the related features will fail until the secrets are set.
 
 ## Running
 - Start: `npm run dev`
