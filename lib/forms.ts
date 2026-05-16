@@ -639,6 +639,7 @@ export async function retryFailedSubmission(id: number): Promise<void> {
   // We pin it back to 'pending' (with the new error_detail) on any throw
   // so the next scheduler tick can pick it up again.
   let succeeded = false;
+  let skippedAsDuplicate = false;
   let errorDetail: string | null = null;
   let responseText = "";
 
@@ -653,30 +654,92 @@ export async function retryFailedSubmission(id: number): Promise<void> {
         buildBdFields(data, tempPassword, professionId),
       ).toString();
 
-      try {
-        const res = await fetch(BD_API_ENDPOINT, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-Api-Key": apiKey,
-            "accept": "application/json",
-          },
-          body,
-        });
-        responseText = await res.text();
-        if (!res.ok) {
-          errorDetail = `HTTP ${res.status}: ${responseText}`;
-        } else {
-          succeeded = true;
+      // Email-scoped idempotency for the retry path. Multiple
+      // failed_submissions rows can exist for the same applicant (historical
+      // duplicates, repeated submits while BD was down). Without this check,
+      // the scheduler would happily POST to BD once per failed_submissions
+      // row and create N duplicate BD accounts for the same applicant.
+      //
+      // We hold the SAME advisory lock submitApplication uses
+      // (hashtextextended of lowercased email), so a retry serializes with
+      // any concurrent fresh submit OR a concurrent retry of a sibling row
+      // for the same applicant. Inside the lock we look for any
+      // invitation_leads row with bd_status='created' for this email; if
+      // found, this retry is a no-op — we mark the row resolved without
+      // calling BD.
+      const emailLockKey = data.email.toLowerCase();
+      await withClient(async (client) => {
+        await client.query(
+          `SELECT pg_advisory_lock(hashtextextended($1, 0))`,
+          [emailLockKey],
+        );
+        try {
+          const dup = await client.query(
+            `SELECT id, bd_user_id
+               FROM invitation_leads
+              WHERE LOWER(email) = LOWER($1)
+                AND bd_status = 'created'
+              ORDER BY created_at DESC
+              LIMIT 1`,
+            [data.email],
+          );
+          if (dup.rowCount && dup.rowCount > 0) {
+            const prior = dup.rows[0] as { id: number; bd_user_id: string | null };
+            console.log(
+              `[BD] Retry ${id} skipped — applicant ${prior.bd_user_id ?? "?"} ` +
+                `already exists in BD (invitation_lead=${prior.id}). Marking resolved.`,
+            );
+            skippedAsDuplicate = true;
+            return;
+          }
+
+          try {
+            const res = await fetch(BD_API_ENDPOINT, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-Api-Key": apiKey,
+                "accept": "application/json",
+              },
+              body,
+            });
+            responseText = await res.text();
+            if (!res.ok) {
+              errorDetail = `HTTP ${res.status}: ${responseText}`;
+            } else {
+              succeeded = true;
+            }
+          } catch (err) {
+            errorDetail = `Network/unexpected error: ${err instanceof Error ? err.message : String(err)}`;
+          }
+        } finally {
+          try {
+            await client.query(
+              `SELECT pg_advisory_unlock(hashtextextended($1, 0))`,
+              [emailLockKey],
+            );
+          } catch (err) {
+            console.error("[BD] Retry: failed to release email advisory lock:", err);
+          }
         }
-      } catch (err) {
-        errorDetail = `Network/unexpected error: ${err instanceof Error ? err.message : String(err)}`;
-      }
+      });
     }
   } catch (err) {
     // Defensive: any unexpected throw above (e.g. config-loading exception)
     // is captured here so the cleanup branch runs.
     errorDetail = `Unexpected retry error: ${err instanceof Error ? err.message : String(err)}`;
+  }
+
+  if (skippedAsDuplicate) {
+    await query(
+      `UPDATE failed_submissions
+       SET status = 'resolved', resolved_at = NOW(),
+           error_detail = COALESCE(error_detail, '') ||
+             E'\n[auto-resolved: BD account already exists for this email]'
+       WHERE id = $1 AND status = 'processing'`,
+      [id],
+    );
+    return;
   }
 
   if (succeeded) {
